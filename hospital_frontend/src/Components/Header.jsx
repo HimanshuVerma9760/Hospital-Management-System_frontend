@@ -116,7 +116,7 @@ export default function Header() {
           <Divider variant="middle" component="li" />
         </List>
       </Drawer>
-      <AppBar sx={{ margin: "20px", maxWidth: "77rem", borderRadius:"10px" }}>
+      <AppBar sx={{ maxWidth: "100%", borderRadius:"10px" }}>
         <Toolbar>
           <IconButton
             size="large"

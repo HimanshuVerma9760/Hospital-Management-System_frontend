@@ -4,6 +4,7 @@ import Home from "./Components/Home";
 import { RouterProvider } from "react-router";
 
 export default function App() {
+  consoe.log("somethong")
   const router = createBrowserRouter([
     {
       path: "/",

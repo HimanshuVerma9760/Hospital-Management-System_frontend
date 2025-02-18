@@ -125,6 +125,7 @@ export default function Login() {
         animate={{ opacity: 1, y: 0 }}
         transition="1s"
       >
+        <CssBaseline />
         <Box sx={{ marginTop: "9rem" }}>
           <Form onSubmit={onSubmitHandler}>
             <Grid2
@@ -133,11 +134,13 @@ export default function Login() {
                 flexDirection: "column",
                 justifyContent: "center",
                 gap: "1.5rem",
-                maxWidth: "50rem",
+                maxWidth: "30rem",
                 margin: "auto",
-                backgroundColor: "whitesmoke",
-                padding: "2rem",
+                backgroundColor: "white",
+                paddingTop: "5rem",
+                paddingBottom: "5rem",
                 borderRadius: "2rem",
+                boxShadow: "0px 1px 2px 0px",
               }}
             >
               <Grid2 alignSelf="center">
@@ -173,13 +176,10 @@ export default function Login() {
                     error.emailError.state && error.emailError.message
                   }
                   sx={{
-                    input: {
-                      color: "black",
-                    },
                     backgroundColor: "white",
                     minWidth: "25rem",
                     borderRadius: "10px",
-                    color: "black",
+                    // color: "black",
                   }}
                 />
                 <Typography variant=""></Typography>
@@ -206,11 +206,13 @@ export default function Login() {
                 />
                 <Button
                   type="submit"
+                  variant="contained"
                   disabled={
                     error.emailError.state ||
                     error.passwordError.state ||
                     formError
                   }
+                  color="white"
                 >
                   Login
                 </Button>

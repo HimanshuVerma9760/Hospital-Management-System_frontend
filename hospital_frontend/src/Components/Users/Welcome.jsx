@@ -1,17 +1,21 @@
+import React, { useEffect, useState } from "react";
 import {
-  Alert,
-  AppBar,
-  Box,
+  Drawer,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  Toolbar,
   CssBaseline,
-  Grid2,
-  IconButton,
+  Box,
   Skeleton,
-  Typography,
 } from "@mui/material";
-import { useEffect, useState } from "react";
-import useAuth from "../../util/useAuth";
-import { Logout } from "@mui/icons-material";
+import HomeIcon from "@mui/icons-material/Home";
+import SettingsIcon from "@mui/icons-material/Settings";
 import { useNavigate } from "react-router";
+import useAuth from "../../util/useAuth";
+
+const drawerWidth = 240;
 
 export default function Welcome() {
   const [isVerified, setIsVerified] = useState(false);
@@ -73,17 +77,40 @@ export default function Welcome() {
     );
   }
   return (
-    <>
-      <AppBar>
-        <Grid2>
-          <Grid2 display="flex" justifyContent="space-around">
-            <Typography variant="h4">Welcome {role}</Typography>
-            <IconButton onClick={logoutHandler}>
-              <Logout sx={{color:"white"}} />
-            </IconButton>
-          </Grid2>
-        </Grid2>
-      </AppBar>
-    </>
+    <Box sx={{ display: "flex" }}>
+      <CssBaseline />
+      <Drawer
+        variant="permanent"
+        sx={{
+          width: drawerWidth,
+          flexShrink: 0,
+          [`& .MuiDrawer-paper`]: {
+            width: drawerWidth,
+            boxSizing: "border-box",
+          },
+        }}
+      >
+        <Toolbar />
+        <List>
+          <ListItem button>
+            <ListItemIcon>
+              <HomeIcon />
+            </ListItemIcon>
+            <ListItemText primary="Home" />
+          </ListItem>
+          <ListItem button>
+            <ListItemIcon>
+              <SettingsIcon />
+            </ListItemIcon>
+            <ListItemText primary="Settings" />
+          </ListItem>
+        </List>
+      </Drawer>
+
+      <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+        <Toolbar />
+        <h1>Main Content Here</h1>
+      </Box>
+    </Box>
   );
 }

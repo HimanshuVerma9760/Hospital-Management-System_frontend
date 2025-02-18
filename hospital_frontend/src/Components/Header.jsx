@@ -16,14 +16,15 @@ import MailIcon from "@mui/icons-material/Mail";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import MoreIcon from "@mui/icons-material/MoreVert";
 import {
+  CssBaseline,
   Divider,
   Drawer,
-  fabClasses,
   List,
   ListItem,
   ListItemButton,
 } from "@mui/material";
 import { ContactPage, Help, Login } from "@mui/icons-material";
+import { Link, Outlet, useLocation, useNavigate } from "react-router";
 
 const Search = styled("div")(({ theme }) => ({
   position: "relative",
@@ -67,6 +68,10 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 
 export default function Header() {
   const [openDrawer, setOpenDrawer] = React.useState(false);
+  const navigate = useLocation();
+  React.useEffect(() => {
+    setOpenDrawer(false);
+  }, [navigate.pathname]);
   return (
     <Box sx={{ flexGrow: 1 }}>
       <Drawer open={openDrawer} onClose={() => setOpenDrawer(false)}>
@@ -75,7 +80,6 @@ export default function Header() {
             width: "18rem",
             display: "flex",
             flexDirection: "column",
-            // gap: "1rem",
             textAlign: "center",
           }}
         >
@@ -87,26 +91,32 @@ export default function Header() {
           >
             Console
           </Typography>
-          <ListItemButton sx={{ display: "flex", gap: "3rem" }}>
-            <Login />
-            <Typography variant="h6" onClick={() => setIsMenuOpen(true)}>
-              Login
-            </Typography>
-          </ListItemButton>
+          <Link to="/login" style={{ textDecoration: "none", color: "gray" }}>
+            <ListItemButton sx={{ display: "flex", gap: "3rem" }}>
+              <Login />
+              <Typography variant="h6">
+                Login
+              </Typography>
+            </ListItemButton>
+          </Link>
           <Divider variant="middle" component="li" />
-          <ListItemButton sx={{ display: "flex", gap: "3rem" }}>
-            <Help />
-            <Typography variant="h6">Help</Typography>
-          </ListItemButton>
+          <Link style={{ textDecoration: "none", color: "gray" }}>
+            <ListItemButton sx={{ display: "flex", gap: "3rem" }}>
+              <Help />
+              <Typography variant="h6">Help</Typography>
+            </ListItemButton>
+          </Link>
           <Divider variant="middle" component="li" />
-          <ListItemButton sx={{ display: "flex", gap: "3rem" }}>
-            <ContactPage />
-            <Typography variant="h6">Contact Us</Typography>
-          </ListItemButton>
+          <Link style={{ textDecoration: "none", color: "gray" }}>
+            <ListItemButton sx={{ display: "flex", gap: "3rem" }}>
+              <ContactPage />
+              <Typography variant="h6">Contact Us</Typography>
+            </ListItemButton>
+          </Link>
           <Divider variant="middle" component="li" />
         </List>
       </Drawer>
-      <AppBar position="static">
+      <AppBar sx={{ margin: "20px", maxWidth: "77rem", borderRadius:"10px" }}>
         <Toolbar>
           <IconButton
             size="large"
@@ -176,6 +186,9 @@ export default function Header() {
           </Box>
         </Toolbar>
       </AppBar>
+      <Box>
+        <Outlet />
+      </Box>
     </Box>
   );
 }

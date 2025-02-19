@@ -126,7 +126,7 @@ export default function Login() {
         transition="1s"
       >
         <CssBaseline />
-        <Box sx={{ marginTop: "9rem" }}>
+        <Box sx={{ marginTop: "3rem" }}>
           <Form onSubmit={onSubmitHandler}>
             <Grid2
               sx={{
@@ -137,8 +137,9 @@ export default function Login() {
                 maxWidth: "30rem",
                 margin: "auto",
                 backgroundColor: "white",
-                paddingTop: "5rem",
-                paddingBottom: "5rem",
+                // paddingTop: "3rem",
+                // paddingBottom: "5rem",
+                minHeight:"30rem",
                 borderRadius: "2rem",
                 boxShadow: "0px 1px 2px 0px",
               }}
@@ -161,7 +162,7 @@ export default function Login() {
               </Grid2>
               <Grid2
                 alignSelf="center"
-                sx={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}
+                sx={{ display: "flex", flexDirection: "column", gap: "1.2rem" }}
               >
                 <TextField
                   id="email"
@@ -212,7 +213,7 @@ export default function Login() {
                     error.passwordError.state ||
                     formError
                   }
-                  color="white"
+                sx={{backgroundColor:"green", color:"white", padding:"0.6rem", marginTop:"1rem"}}
                 >
                   Login
                 </Button>

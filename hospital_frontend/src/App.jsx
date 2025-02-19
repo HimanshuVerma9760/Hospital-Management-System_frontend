@@ -1,12 +1,12 @@
 import { createBrowserRouter } from "react-router-dom";
-import Header from "./Components/Header";
-import Home from "./Components/Home";
 import { RouterProvider } from "react-router";
 import { createTheme, CssBaseline } from "@mui/material";
-import { green, cyan } from "@mui/material/colors";
+import { cyan } from "@mui/material/colors";
 import { ThemeProvider } from "@emotion/react";
 import Welcome from "./Components/Users/Welcome";
 import Login from "./Components/Login";
+import Doctors from "./Components/Users/Doctors";
+import Hospitals from "./Components/Users/Hospitals";
 
 export default function App() {
   const theme = createTheme({
@@ -25,6 +25,16 @@ export default function App() {
     {
       path: "/users",
       element: <Welcome />,
+      children: [
+        {
+          path: "doctors",
+          element: <Doctors/>
+        },
+        {
+          path: "hospitals",
+          element: <Hospitals/>
+        },
+      ],
     },
   ]);
 

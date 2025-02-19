@@ -9,11 +9,19 @@ import {
   CssBaseline,
   Box,
   Skeleton,
+  ListItemAvatar,
+  ListItemButton,
+  Avatar,
+  Grid2,
+  Typography,
+  Button,
+  Alert,
 } from "@mui/material";
 import HomeIcon from "@mui/icons-material/Home";
-import SettingsIcon from "@mui/icons-material/Settings";
-import { useNavigate } from "react-router";
+import { ListAltOutlined, LocalHospital, Logout } from "@mui/icons-material";
+import { Link, Outlet, useNavigate } from "react-router";
 import useAuth from "../../util/useAuth";
+import { deepOrange } from "@mui/material/colors";
 
 const drawerWidth = 240;
 
@@ -36,7 +44,7 @@ export default function Welcome() {
 
   function logoutHandler() {
     localStorage.clear();
-    navigate("/login");
+    navigate("/");
   }
   if (isLoading) {
     return (
@@ -90,26 +98,71 @@ export default function Welcome() {
           },
         }}
       >
+        {/* <Typography variant="h6" fontWeight="bold" marginBottom="10px" align="center">
+            HashStudioz
+        </Typography> */}
         <Toolbar />
-        <List>
-          <ListItem button>
-            <ListItemIcon>
-              <HomeIcon />
-            </ListItemIcon>
-            <ListItemText primary="Home" />
-          </ListItem>
-          <ListItem button>
-            <ListItemIcon>
-              <SettingsIcon />
-            </ListItemIcon>
-            <ListItemText primary="Settings" />
-          </ListItem>
+        <Typography
+          variant="p"
+          fontWeight="bold"
+          paddingLeft="20px"
+          marginBottom="15px"
+        >
+          Main menu
+        </Typography>
+        <List sx={{ paddingLeft: "1rem", marginRight:"1rem"}}>
+          <Link to='/users' style={{ textDecoration: "none", color: "black" }}>
+            <ListItemButton>
+              <ListItemIcon>
+                <HomeIcon />
+              </ListItemIcon>
+              <ListItemText primary="Home" />
+            </ListItemButton>
+          </Link>
+          <Link to='doctors' style={{ textDecoration: "none", color: "black" }}>
+            <ListItemButton>
+              <ListItemIcon>
+                <ListAltOutlined />
+              </ListItemIcon>
+              <ListItemText primary="Doctors" />
+            </ListItemButton>
+          </Link>
+          <Link to='hospitals' style={{ textDecoration: "none", color: "black" }}>
+            <ListItemButton>
+              <ListItemIcon>
+                <LocalHospital />
+              </ListItemIcon>
+              <ListItemText primary="Hospitals" />
+            </ListItemButton>
+          </Link>
+          {/* <Link to='hospitals' style={{ textDecoration: "none", color: "black" }}> */}
+            <ListItemButton onClick={logoutHandler}>
+              <ListItemIcon>
+                <Logout />
+              </ListItemIcon>
+              <ListItemText primary="Logout" />
+            </ListItemButton>
+          {/* </Link> */}
         </List>
       </Drawer>
 
       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
+        <Grid2 display="flex" justifyContent="space-between">
+          <Typography variant="h6" fontWeight="bold">
+            Hospital Management System
+          </Typography>
+          <Link style={{ textDecoration: "none" }}>
+            <Avatar
+              sx={{ bgcolor: deepOrange[500] }}
+              alt="Remy Sharp"
+              src="/broken-image.jpg"
+            >
+              B
+            </Avatar>
+          </Link>
+        </Grid2>
         <Toolbar />
-        <h1>Main Content Here</h1>
+        <Outlet />
       </Box>
     </Box>
   );

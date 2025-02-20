@@ -43,7 +43,7 @@ export default function Login() {
     if (response.ok) {
       const result = await response.json();
       localStorage.setItem("token", result.token);
-      navigate("/users");
+      navigate("/users/doctors");
     } else {
       setResponseError(true);
     }

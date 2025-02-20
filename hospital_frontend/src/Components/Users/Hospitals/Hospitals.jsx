@@ -1,6 +1,15 @@
 import { useEffect, useState } from "react";
-import useAuth from "../../util/useAuth";
-import { Alert, Skeleton, TableHead, Typography } from "@mui/material";
+import useAuth from "../../../util/useAuth";
+import {
+  Alert,
+  Grid2,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Skeleton,
+  TableHead,
+  Typography,
+} from "@mui/material";
 import * as React from "react";
 import PropTypes from "prop-types";
 import { useTheme } from "@mui/material/styles";
@@ -18,12 +27,14 @@ import FirstPageIcon from "@mui/icons-material/FirstPage";
 import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import LastPageIcon from "@mui/icons-material/LastPage";
+import { Add } from "@mui/icons-material";
+import { Link } from "react-router";
 const Conn = import.meta.env.VITE_CONN_URI;
 
-export default function Doctors() {
+export default function Hospitals() {
   const [isVerified, setIsVerified] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
-  const [fetchedDoctors, setFetchedDoctors] = useState([]);
+  const [fetchedHospitals, setFetchedHospitals] = useState([]);
 
   function TablePaginationActions(props) {
     const theme = useTheme();
@@ -93,16 +104,16 @@ export default function Doctors() {
     rowsPerPage: PropTypes.number.isRequired,
   };
 
-  function createData(name, specialization, city, hospital) {
-    return { name, specialization, city, hospital };
+  function createData(name, location, city, Doctors) {
+    return { name, location, city, Doctors };
   }
 
-  const rows = fetchedDoctors.map((eachDoctor) =>
+  const rows = fetchedHospitals.map((eachHospital) =>
     createData(
-      eachDoctor.name,
-      eachDoctor.specialization,
-      eachDoctor.city.name,
-      eachDoctor.hospital.name
+      eachHospital.name,
+      eachHospital.location,
+      eachHospital.city.name,
+      eachHospital.doctor.length
     )
   );
 
@@ -132,13 +143,13 @@ export default function Doctors() {
       } else {
         try {
           const response = await fetch(
-            `${Conn}/doctors/?page=${page + 1}&limit=${rowsPerPage}`
+            `${Conn}/hospitals/?page=${page + 1}&limit=${rowsPerPage}`
           );
           const result = await response.json();
           console.log("API Response:", result); // Debugging
 
           if (response.ok) {
-            setFetchedDoctors(result.result);
+            setFetchedHospitals(result.result);
             setTotalCount(result.totalRecords);
           } else {
             console.error("Error fetching doctors:", result);
@@ -168,6 +179,16 @@ export default function Doctors() {
 
   return (
     <>
+      <Grid2 display="flex" justifyContent="end">
+        <Link to='add' style={{textDecoration:"none", color:"black"}}>
+          <ListItemButton sx={{ maxWidth: "12rem", borderRadius: "6px" }}>
+            <ListItemIcon>
+              <Add />
+            </ListItemIcon>
+            <ListItemText>Add Hospital</ListItemText>
+          </ListItemButton>
+        </Link>
+      </Grid2>
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 500 }} aria-label="custom pagination table">
           <TableHead>
@@ -177,19 +198,19 @@ export default function Doctors() {
                   Name
                 </Typography>
               </TableCell>
-              <TableCell align="right">
+              <TableCell align="center">
                 <Typography variant="h5" color="green">
-                  Specialization
+                  Location
                 </Typography>
               </TableCell>
-              <TableCell align="right">
+              <TableCell align="center">
                 <Typography variant="h5" color="green">
                   City
                 </Typography>
               </TableCell>
-              <TableCell align="right">
+              <TableCell align="center">
                 <Typography variant="h5" color="green">
-                  Hospital
+                  Doctors
                 </Typography>
               </TableCell>
             </TableRow>
@@ -200,14 +221,14 @@ export default function Doctors() {
                 <TableCell component="th" scope="row">
                   {row.name}
                 </TableCell>
-                <TableCell style={{ width: 160 }} align="right">
-                  {row.specialization}
+                <TableCell style={{ width: 160 }} align="center">
+                  {row.location}
                 </TableCell>
-                <TableCell style={{ width: 160 }} align="right">
+                <TableCell style={{ width: 160 }} align="center">
                   {row.city}
                 </TableCell>
-                <TableCell style={{ width: 160 }} align="right">
-                  {row.hospital}
+                <TableCell style={{ width: 160 }} align="center">
+                  {row.Doctors}
                 </TableCell>
               </TableRow>
             ))}

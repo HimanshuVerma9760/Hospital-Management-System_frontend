@@ -1,6 +1,15 @@
 import { useEffect, useState } from "react";
-import useAuth from "../../util/useAuth";
-import { Alert, Skeleton, TableHead, Typography } from "@mui/material";
+import useAuth from "../../../util/useAuth";
+import {
+  Alert,
+  Grid2,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Skeleton,
+  TableHead,
+  Typography,
+} from "@mui/material";
 import * as React from "react";
 import PropTypes from "prop-types";
 import { useTheme } from "@mui/material/styles";
@@ -18,12 +27,14 @@ import FirstPageIcon from "@mui/icons-material/FirstPage";
 import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import LastPageIcon from "@mui/icons-material/LastPage";
+import { Add } from "@mui/icons-material";
+import { Link } from "react-router";
 const Conn = import.meta.env.VITE_CONN_URI;
 
-export default function Hospitals() {
+export default function Patients() {
   const [isVerified, setIsVerified] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
-  const [fetchedHospitals, setFetchedHospitals] = useState([]);
+  const [fetchedPatients, setFetchedPatients] = useState([]);
 
   function TablePaginationActions(props) {
     const theme = useTheme();
@@ -93,16 +104,17 @@ export default function Hospitals() {
     rowsPerPage: PropTypes.number.isRequired,
   };
 
-  function createData(name, location, city, Doctors) {
-    return { name, location, city, Doctors };
+  function createData(name, city, hospital, disease, Doctor) {
+    return { name, city, hospital, disease, Doctor };
   }
 
-  const rows = fetchedHospitals.map((eachHospital) =>
+  const rows = fetchedPatients.map((eachPatient) =>
     createData(
-      eachHospital.name,
-      eachHospital.location,
-      eachHospital.city.name,
-      eachHospital.doctor.length
+      eachPatient.name,
+      eachPatient.city.name,
+      eachPatient.hospital.name,
+      eachPatient.disease,
+      eachPatient.doctor.name
     )
   );
 
@@ -122,23 +134,16 @@ export default function Hospitals() {
     setIsLoading(true);
     async function checkAuth() {
       const verfiedUser = await useAuth();
-      if (
-        !(
-          verfiedUser.response &&
-          (verfiedUser.role === "Super-Admin" || verfiedUser.role === "Admin")
-        )
-      ) {
+      if (!verfiedUser.response) {
         setIsVerified(false);
       } else {
         try {
           const response = await fetch(
-            `${Conn}/hospitals/?page=${page + 1}&limit=${rowsPerPage}`
+            `${Conn}/patients/?page=${page + 1}&limit=${rowsPerPage}`
           );
           const result = await response.json();
-          console.log("API Response:", result); // Debugging
-
           if (response.ok) {
-            setFetchedHospitals(result.result);
+            setFetchedPatients(result.result);
             setTotalCount(result.totalRecords);
           } else {
             console.error("Error fetching doctors:", result);
@@ -168,6 +173,16 @@ export default function Hospitals() {
 
   return (
     <>
+      <Grid2 display="flex" justifyContent="end">
+        <Link to="add" style={{ textDecoration: "none", color: "black" }}>
+          <ListItemButton sx={{ maxWidth: "12rem", borderRadius: "6px" }}>
+            <ListItemIcon>
+              <Add />
+            </ListItemIcon>
+            <ListItemText>Add Patient</ListItemText>
+          </ListItemButton>
+        </Link>
+      </Grid2>
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 500 }} aria-label="custom pagination table">
           <TableHead>
@@ -177,19 +192,24 @@ export default function Hospitals() {
                   Name
                 </Typography>
               </TableCell>
-              <TableCell align="right">
-                <Typography variant="h5" color="green">
-                  Location
-                </Typography>
-              </TableCell>
-              <TableCell align="right">
+              <TableCell align="center">
                 <Typography variant="h5" color="green">
                   City
                 </Typography>
               </TableCell>
-              <TableCell align="right">
+              <TableCell align="center">
                 <Typography variant="h5" color="green">
-                  Doctors
+                  Hospital
+                </Typography>
+              </TableCell>
+              <TableCell align="center">
+                <Typography variant="h5" color="green">
+                  Disease
+                </Typography>
+              </TableCell>
+              <TableCell align="center">
+                <Typography variant="h5" color="green">
+                  Doctor
                 </Typography>
               </TableCell>
             </TableRow>
@@ -200,14 +220,17 @@ export default function Hospitals() {
                 <TableCell component="th" scope="row">
                   {row.name}
                 </TableCell>
-                <TableCell style={{ width: 160 }} align="right">
-                  {row.location}
-                </TableCell>
-                <TableCell style={{ width: 160 }} align="right">
+                <TableCell style={{ width: 160 }} align="center">
                   {row.city}
                 </TableCell>
-                <TableCell style={{ width: 160 }} align="right">
-                  {row.Doctors}
+                <TableCell style={{ width: 160 }} align="center">
+                  {row.hospital}
+                </TableCell>
+                <TableCell style={{ width: 160 }} align="center">
+                  {row.disease}
+                </TableCell>
+                <TableCell style={{ width: 160 }} align="center">
+                  {row.Doctor}
                 </TableCell>
               </TableRow>
             ))}
@@ -216,7 +239,7 @@ export default function Hospitals() {
             <TableRow>
               <TablePagination
                 rowsPerPageOptions={[5, 10, 25, { label: "All", value: -1 }]}
-                colSpan={2}
+                colSpan={3}
                 count={totalCount}
                 rowsPerPage={rowsPerPage}
                 page={page}

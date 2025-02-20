@@ -5,8 +5,12 @@ import { cyan } from "@mui/material/colors";
 import { ThemeProvider } from "@emotion/react";
 import Welcome from "./Components/Users/Welcome";
 import Login from "./Components/Login";
-import Doctors from "./Components/Users/Doctors";
-import Hospitals from "./Components/Users/Hospitals";
+import Doctors from "./Components/Users/Doctors/Doctors";
+import Hospitals from "./Components/Users/Hospitals/Hospitals";
+import AddHospital from "./Components/Users/Hospitals/AddHospital";
+import AddDoctor from "./Components/Users/Doctors/AddDoctor";
+import Patients from "./Components/Users/Patients/Patients";
+import AddPatient from "./Components/Users/Patients/AddPatient";
 
 export default function App() {
   const theme = createTheme({
@@ -28,11 +32,27 @@ export default function App() {
       children: [
         {
           path: "doctors",
-          element: <Doctors/>
+          element: <Doctors />,
+        },
+        {
+          path: "doctors/add",
+          element: <AddDoctor />,
         },
         {
           path: "hospitals",
-          element: <Hospitals/>
+          element: <Hospitals />,
+        },
+        {
+          path: "hospitals/add",
+          element: <AddHospital />,
+        },
+        {
+          path: "patients",
+          element: <Patients />,
+        },
+        {
+          path: "patients/add",
+          element: <AddPatient />,
         },
       ],
     },

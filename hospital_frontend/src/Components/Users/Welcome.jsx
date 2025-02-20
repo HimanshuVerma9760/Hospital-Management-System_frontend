@@ -18,7 +18,7 @@ import {
   Alert,
 } from "@mui/material";
 import HomeIcon from "@mui/icons-material/Home";
-import { ListAltOutlined, LocalHospital, Logout } from "@mui/icons-material";
+import { ListAltOutlined, LocalHospital, Logout, Person } from "@mui/icons-material";
 import { Link, Outlet, useNavigate } from "react-router";
 import useAuth from "../../util/useAuth";
 import { deepOrange } from "@mui/material/colors";
@@ -110,8 +110,8 @@ export default function Welcome() {
         >
           Main menu
         </Typography>
-        <List sx={{ paddingLeft: "1rem", marginRight:"1rem"}}>
-          <Link to='/users' style={{ textDecoration: "none", color: "black" }}>
+        <List sx={{ paddingLeft: "1rem", marginRight: "1rem" }}>
+          <Link to="/users" style={{ textDecoration: "none", color: "black" }}>
             <ListItemButton>
               <ListItemIcon>
                 <HomeIcon />
@@ -119,7 +119,7 @@ export default function Welcome() {
               <ListItemText primary="Home" />
             </ListItemButton>
           </Link>
-          <Link to='doctors' style={{ textDecoration: "none", color: "black" }}>
+          <Link to="doctors" style={{ textDecoration: "none", color: "black" }}>
             <ListItemButton>
               <ListItemIcon>
                 <ListAltOutlined />
@@ -127,7 +127,10 @@ export default function Welcome() {
               <ListItemText primary="Doctors" />
             </ListItemButton>
           </Link>
-          <Link to='hospitals' style={{ textDecoration: "none", color: "black" }}>
+          <Link
+            to="hospitals"
+            style={{ textDecoration: "none", color: "black" }}
+          >
             <ListItemButton>
               <ListItemIcon>
                 <LocalHospital />
@@ -135,13 +138,24 @@ export default function Welcome() {
               <ListItemText primary="Hospitals" />
             </ListItemButton>
           </Link>
-          {/* <Link to='hospitals' style={{ textDecoration: "none", color: "black" }}> */}
-            <ListItemButton onClick={logoutHandler}>
+          <Link
+            to="patients"
+            style={{ textDecoration: "none", color: "black" }}
+          >
+            <ListItemButton>
               <ListItemIcon>
-                <Logout />
+                <Person />
               </ListItemIcon>
-              <ListItemText primary="Logout" />
+              <ListItemText primary="Patients" />
             </ListItemButton>
+          </Link>
+          {/* <Link to='hospitals' style={{ textDecoration: "none", color: "black" }}> */}
+          <ListItemButton onClick={logoutHandler}>
+            <ListItemIcon>
+              <Logout />
+            </ListItemIcon>
+            <ListItemText primary="Logout" />
+          </ListItemButton>
           {/* </Link> */}
         </List>
       </Drawer>

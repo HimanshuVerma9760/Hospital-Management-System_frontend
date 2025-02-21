@@ -283,9 +283,12 @@ export default function Doctors() {
             sx={{ marginBottom: "5px" }}
             onClick={() => setPage(0)}
           >
-            <MenuItem value="all">All</MenuItem>
+            <MenuItem id="all" value="all">
+              All
+            </MenuItem>
             {specializations.map((eachSpecialization) => (
               <MenuItem
+                id={eachSpecialization.name}
                 key={eachSpecialization.id}
                 value={eachSpecialization.name}
               >
@@ -313,6 +316,9 @@ export default function Doctors() {
           </Button>
         </Link>
       </Grid2>
+      {rows.length === 0 && (
+        <Alert severity="info">No doctors found for the selected filter</Alert>
+      )}
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 500 }} aria-label="custom pagination table">
           <TableHead>

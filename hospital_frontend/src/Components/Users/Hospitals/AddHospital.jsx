@@ -167,7 +167,7 @@ export default function AddHospital() {
         break;
 
       case "city":
-        if (value.trim().length === 0) {
+        if (value.length === 0) {
           setError((prevState) => ({
             ...prevState,
             cityError: {

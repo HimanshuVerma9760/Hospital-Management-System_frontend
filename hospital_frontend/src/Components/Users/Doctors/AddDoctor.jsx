@@ -159,7 +159,7 @@ export default function AddDoctor() {
         break;
 
       case "specialization":
-        if (value.trim().length === 0) {
+        if (value.length === 0) {
           setError((prevState) => ({
             ...prevState,
             specializationError: {
@@ -171,7 +171,7 @@ export default function AddDoctor() {
         break;
 
       case "city":
-        if (value.trim().length === 0) {
+        if (value.length === 0) {
           setError((prevState) => ({
             ...prevState,
             cityError: {
@@ -183,7 +183,7 @@ export default function AddDoctor() {
         break;
 
       case "hospital":
-        if (value.trim().length === 0) {
+        if (value.length === 0) {
           setError((prevState) => ({
             ...prevState,
             hospitalError: {

@@ -31,6 +31,7 @@ export default function AddPatient() {
   const [hospital, setHospital] = useState("");
   const [doctor, setDoctor] = useState("");
   const [message, setMessage] = useState("");
+  const [diseases, setDiseases] = useState([]);
   async function fetchCities() {
     const response = await fetch(`${Conn}/cities`);
     if (response.ok) {
@@ -45,6 +46,15 @@ export default function AddPatient() {
     if (response.ok) {
       const result = await response.json();
       setDoctors(result.result);
+    } else {
+      console.log("Some error occured");
+    }
+  }
+  async function fetchDiseases() {
+    const response = await fetch(`${Conn}/diseases`);
+    if (response.ok) {
+      const result = await response.json();
+      setDiseases(result.result);
     } else {
       console.log("Some error occured");
     }
@@ -100,7 +110,7 @@ export default function AddPatient() {
         break;
 
       case "disease":
-        if (containsNumber(value) || value.trim().length === 0) {
+        if (value.length === 0) {
           setError((prevState) => ({
             ...prevState,
             diseaseError: {
@@ -112,7 +122,7 @@ export default function AddPatient() {
         break;
 
       case "city":
-        if (value.trim().length === 0) {
+        if (value.length === 0) {
           setError((prevState) => ({
             ...prevState,
             cityError: {
@@ -124,7 +134,7 @@ export default function AddPatient() {
         break;
 
       case "hospital":
-        if (value.trim().length === 0) {
+        if (value.length === 0) {
           setError((prevState) => ({
             ...prevState,
             hospitalError: {
@@ -135,7 +145,7 @@ export default function AddPatient() {
         }
         break;
       case "doctor":
-        if (value.trim().length === 0) {
+        if (value.length === 0) {
           setError((prevState) => ({
             ...prevState,
             doctorError: {
@@ -152,14 +162,16 @@ export default function AddPatient() {
   }
   useEffect(() => {
     async function checkAuth() {
+      console.log("Auth");
       const verifiedUser = await useAuth();
-      if (!(verifiedUser.response && verifiedUser.role === "Super-Admin")) {
+      if (!verifiedUser.response) {
         setIsVerified(false);
       } else {
         setIsLoading(false);
         fetchCities();
         fetchHospitals();
         fetchDoctors();
+        fetchDiseases();
       }
     }
     checkAuth();
@@ -251,6 +263,7 @@ export default function AddPatient() {
       setSubmissionProgress(false);
       if (response.ok) {
         setMessage(result.message);
+        setName("");
         setDisease("");
         setCity("");
         setDoctor("");
@@ -345,16 +358,31 @@ export default function AddPatient() {
               helperText={error.nameError.message}
               onChange={onChangeHandler}
             />
-            <TextField
-              name="disease"
-              id="disease"
-              label="Enter disease name"
-              value={disease}
-              onBlur={onBlurHandler}
-              error={error.diseaseError.state}
-              helperText={error.diseaseError.message}
-              onChange={onChangeHandler}
-            />
+            <FormControl error={error.diseaseError.state}>
+              <InputLabel id="diseaseLabel">Disease</InputLabel>
+              <Select
+                labelId="diseaseLabel"
+                id="disease"
+                name="disease"
+                label="disease"
+                value={disease}
+                onChange={onChangeHandler}
+                onBlur={onBlurHandler}
+              >
+                {isLoading ? (
+                  <Grid2 display="flex" justifyContent="center">
+                    <CircularProgress />
+                  </Grid2>
+                ) : (
+                  diseases.map((eachDisease) => (
+                    <MenuItem value={eachDisease.name} key={eachDisease.id}>
+                      {eachDisease.name}
+                    </MenuItem>
+                  ))
+                )}
+              </Select>
+              <FormHelperText>{error.diseaseError.message}</FormHelperText>
+            </FormControl>
             <FormControl error={error.cityError.state}>
               <InputLabel id="cityLabel">City</InputLabel>
               <Select
@@ -363,8 +391,8 @@ export default function AddPatient() {
                 name="city"
                 label="City"
                 value={city}
-                onBlur={onBlurHandler}
                 onChange={onChangeHandler}
+                onBlur={onBlurHandler}
               >
                 {isLoading ? (
                   <Grid2 display="flex" justifyContent="center">

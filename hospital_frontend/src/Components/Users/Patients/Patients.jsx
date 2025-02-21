@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
-import useAuth from "../../../util/useAuth";
 import {
   Alert,
   Button,
+  FormControl,
   Grid2,
+  InputLabel,
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  MenuItem,
+  Select,
   Skeleton,
   TableHead,
   Typography,
@@ -33,10 +36,23 @@ import { Link } from "react-router";
 const Conn = import.meta.env.VITE_CONN_URI;
 
 export default function Patients() {
-  const [isVerified, setIsVerified] = useState(true);
+  const [disease, setDisease] = useState("all");
+  const [diseases, setDiseases] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [fetchedPatients, setFetchedPatients] = useState([]);
 
+  async function fetchDiseases() {
+    const response = await fetch(`${Conn}/diseases`);
+    if (response.ok) {
+      const result = await response.json();
+      setDiseases(result.result);
+    } else {
+      console.log("Some error occured");
+    }
+  }
+  useEffect(() => {
+    fetchDiseases();
+  }, []);
   function TablePaginationActions(props) {
     const theme = useTheme();
     const { count, page, rowsPerPage, onPageChange } = props;
@@ -133,30 +149,27 @@ export default function Patients() {
   };
   useEffect(() => {
     setIsLoading(true);
-    async function checkAuth() {
-      const verfiedUser = await useAuth();
-      if (!verfiedUser.response) {
-        setIsVerified(false);
-      } else {
-        try {
-          const response = await fetch(
-            `${Conn}/patients/?page=${page + 1}&limit=${rowsPerPage}`
-          );
-          const result = await response.json();
-          if (response.ok) {
-            setFetchedPatients(result.result);
-            setTotalCount(result.totalRecords);
-          } else {
-            console.error("Error fetching doctors:", result);
-          }
-        } catch (error) {
-          console.error("Fetch error:", error);
+    async function fetchData() {
+      try {
+        const response = await fetch(
+          `${Conn}/patients/?page=${
+            page + 1
+          }&limit=${rowsPerPage}&disease=${disease}`
+        );
+        const result = await response.json();
+        if (response.ok) {
+          setFetchedPatients(result.result);
+          setTotalCount(result.totalRecords);
+        } else {
+          console.error("Error fetching doctors:", result);
         }
+      } catch (error) {
+        console.error("Fetch error:", error);
       }
       setIsLoading(false);
     }
-    checkAuth();
-  }, [page, rowsPerPage]);
+    fetchData();
+  }, [page, rowsPerPage, disease]);
 
   if (isLoading) {
     return (
@@ -166,18 +179,37 @@ export default function Patients() {
         <Skeleton variant="rectangular" height={100} />
       </>
     );
-  } else if (!isVerified) {
-    return (
-      <Alert severity="error">
-        You Are Not Authorised to view this page. Kindly{" "}
-        <Link to="/">Login</Link>
-      </Alert>
-    );
   }
 
   return (
     <>
-      <Grid2 display="flex" justifyContent="end">
+      <Grid2 display="flex" justifyContent="end" gap="1rem" alignItems="center">
+        <FormControl sx={{ minWidth: 150 }}>
+          <InputLabel id="Disease">Disease</InputLabel>
+          <Select
+            labelId="Disease"
+            label="Disease"
+            id="Disease"
+            name="Disease"
+            value={disease}
+            onChange={(e) => setDisease(e.target.value)}
+            sx={{ marginBottom: "5px" }}
+            onClick={() => setPage(0)}
+          >
+            <MenuItem id="all" value="all">
+              All
+            </MenuItem>
+            {diseases.map((eachDisease) => (
+              <MenuItem
+                key={eachDisease.id}
+                id={eachDisease.name}
+                value={eachDisease.name}
+              >
+                {eachDisease.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
         <Link to="add" style={{ textDecoration: "none", color: "black" }}>
           <Button
             variant="contained"
@@ -197,6 +229,9 @@ export default function Patients() {
           </Button>
         </Link>
       </Grid2>
+      {rows.length === 0 && (
+        <Alert severity="info">No Patient found for the selected disease</Alert>
+      )}
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 500 }} aria-label="custom pagination table">
           <TableHead>

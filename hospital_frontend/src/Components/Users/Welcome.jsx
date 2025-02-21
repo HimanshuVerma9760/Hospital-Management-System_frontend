@@ -24,7 +24,7 @@ import {
   Logout,
   Person,
 } from "@mui/icons-material";
-import { Link, Outlet, useNavigate } from "react-router";
+import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import useAuth from "../../util/useAuth";
 import { deepOrange } from "@mui/material/colors";
 
@@ -33,14 +33,14 @@ const drawerWidth = 240;
 export default function Welcome() {
   const [isVerified, setIsVerified] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [role, setRole] = useState("");
   const navigate = useNavigate();
   useEffect(() => {
     async function checkAuth() {
       const userVerified = await useAuth();
       if (userVerified.response) {
         setIsVerified(true);
-        setRole(userVerified.role);
+      } else {
+        setIsVerified(false);
       }
       setIsLoading(false);
     }

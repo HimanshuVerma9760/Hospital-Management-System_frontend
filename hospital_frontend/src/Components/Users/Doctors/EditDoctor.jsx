@@ -14,7 +14,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
-import { Form, useLocation } from "react-router";
+import { Form, useLocation, useNavigate } from "react-router";
 import useAuth from "../../../util/useAuth";
 import ModalContent from "../../Modal/ModalContent";
 const Conn = import.meta.env.VITE_CONN_URI;
@@ -30,7 +30,7 @@ export default function EditDoctor() {
   const [hospital, setHospital] = useState("");
   const [hospitals, setHospitals] = useState([]);
   const [message, setMessage] = useState("");
-  const [dbResult, setDbResult] = useState({});
+  const [specializations, setSpecializations] = useState([]);
   const [showPrompt, setShowPrompt] = useState({
     state: false,
     type: "",
@@ -42,14 +42,24 @@ export default function EditDoctor() {
 
   const reqId = useRef();
 
+  async function fetchSpecializations() {
+    const response = await fetch(`${Conn}/specializations`);
+    if (response.ok) {
+      const result = await response.json();
+      setSpecializations(result.result);
+    } else {
+      console.log("Some error occured");
+    }
+  }
+
   useEffect(() => {
     async function fetchDoctor() {
       const response = await fetch(`${Conn}/doctors/get/${reqId.current}`);
       if (response.ok) {
         const result = await response.json();
-        setDbResult(result.doctor);
+        console.log(result.doctor.city_id);
         setName(result.doctor.name);
-        setSpecialization(result.doctor.specialization);
+        setSpecialization(result.doctor.specialization_id);
         setCity(result.doctor.city_id);
         setHospital(result.doctor.hospital_id);
       } else {
@@ -68,6 +78,7 @@ export default function EditDoctor() {
       return;
     }
     reqId.current = localStorage.getItem("id");
+    fetchSpecializations();
     fetchDoctor();
   }, []);
   async function fetchCities() {
@@ -188,7 +199,7 @@ export default function EditDoctor() {
         break;
 
       case "specialization":
-        if (containsNumber(value) || value.trim().length === 0) {
+        if (value.length === 0) {
           setError((prevState) => ({
             ...prevState,
             specializationError: {
@@ -200,7 +211,7 @@ export default function EditDoctor() {
         break;
 
       case "city":
-        if (value.trim().length === 0) {
+        if (value.length === 0) {
           setError((prevState) => ({
             ...prevState,
             cityError: {
@@ -212,7 +223,7 @@ export default function EditDoctor() {
         break;
 
       case "hospital":
-        if (value.trim().length === 0) {
+        if (value.length === 0) {
           setError((prevState) => ({
             ...prevState,
             hospitalError: {
@@ -227,48 +238,30 @@ export default function EditDoctor() {
         break;
     }
   }
+  const nav = useNavigate();
   async function onSubmitHandler(event) {
     event.preventDefault();
     setSubmissionProgress(true);
-    const verifiedUser = await useAuth();
-    if (
-      !(
-        verifiedUser.response &&
-        (verifiedUser.role === "Super-Admin" || verifiedUser.role === "Admin")
-      )
-    ) {
-      setIsVerified(false);
-      return;
-    }
-
     const formData = {
       name: name,
-      specialization: specialization,
+      specialization_id: specialization,
       city_id: city,
       hospital_id: hospital,
     };
-
-    const response = await fetch(
-      `${Conn}/doctors/update/${reqId.current}/${localStorage.getItem(
-        "token"
-      )}`,
-      {
-        method: "put",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      }
-    );
+    const response = await fetch(`${Conn}/doctors/update/${reqId.current}`, {
+      method: "put",
+      headers: {
+        "Content-Type": "application/json",
+        authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      body: JSON.stringify(formData),
+    });
     if (response) {
       const result = await response.json();
       setSubmissionProgress(false);
       if (response.ok) {
-        setMessage(result.message);
-        setName("");
-        setSpecialization("");
-        setCity("");
-        setHospital("");
+        localStorage.setItem("op", result.message);
+        nav("/users/doctors");
       } else {
         setMessage(result.message[0]);
       }
@@ -376,16 +369,37 @@ export default function EditDoctor() {
               helperText={error.nameError.message}
               onChange={onChangeHandler}
             />
-            <TextField
-              name="specialization"
-              id="specialization"
-              label="Enter specialization of the doctor"
-              value={specialization}
-              onBlur={onBlurHandler}
-              error={error.specializationError.state}
-              helperText={error.specializationError.message}
-              onChange={onChangeHandler}
-            />
+            <FormControl error={error.specializationError.state}>
+              <InputLabel id="specializationLabel">Specialization</InputLabel>
+              <Select
+                labelId="specializationLabel"
+                id="specialization"
+                name="specialization"
+                label="Specialization"
+                value={specialization}
+                onChange={onChangeHandler}
+                onBlur={onBlurHandler}
+              >
+                {isLoading ? (
+                  <Grid2 display="flex" justifyContent="center">
+                    <CircularProgress />
+                  </Grid2>
+                ) : (
+                  specializations.map((eachSpecialization) => (
+                    <MenuItem
+                      id={eachSpecialization.name}
+                      value={eachSpecialization.id}
+                      key={eachSpecialization.id}
+                    >
+                      {eachSpecialization.name}
+                    </MenuItem>
+                  ))
+                )}
+              </Select>
+              <FormHelperText>
+                {error.specializationError.message}
+              </FormHelperText>
+            </FormControl>
             <FormControl error={error.cityError.state}>
               <InputLabel id="cityLabel">City</InputLabel>
               <Select
@@ -393,7 +407,7 @@ export default function EditDoctor() {
                 id="city"
                 name="city"
                 label="City"
-                value={city}
+                value={city || ""}
                 onChange={onChangeHandler}
                 onBlur={onBlurHandler}
               >
@@ -403,7 +417,11 @@ export default function EditDoctor() {
                   </Grid2>
                 ) : (
                   cities.map((eachCity) => (
-                    <MenuItem value={eachCity.id} key={eachCity.id}>
+                    <MenuItem
+                      id={eachCity.id}
+                      value={eachCity.id}
+                      key={eachCity.id}
+                    >
                       {eachCity.name}
                     </MenuItem>
                   ))
@@ -428,7 +446,11 @@ export default function EditDoctor() {
                   </Grid2>
                 ) : (
                   hospitals.map((eachHospital) => (
-                    <MenuItem value={eachHospital.id} key={eachHospital.id}>
+                    <MenuItem
+                      id={eachHospital.id}
+                      value={eachHospital.id}
+                      key={eachHospital.id}
+                    >
                       {eachHospital.name}
                     </MenuItem>
                   ))

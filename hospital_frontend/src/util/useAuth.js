@@ -6,7 +6,11 @@ export default async function useAuth() {
     if (!token) {
       return { response: false, role: null };
     }
-    const response = await fetch(`${Conn}/verify/${token}`);
+    const response = await fetch(`${Conn}/verify`, {
+      headers: {
+        authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
     if (response.ok) {
       const result = await response.json();
       if (result.response) {

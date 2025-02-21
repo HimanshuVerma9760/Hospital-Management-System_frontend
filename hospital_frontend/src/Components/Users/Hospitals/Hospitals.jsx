@@ -105,12 +105,13 @@ export default function Hospitals() {
     rowsPerPage: PropTypes.number.isRequired,
   };
 
-  function createData(name, location, city, Doctors) {
-    return { name, location, city, Doctors };
+  function createData(id, name, location, city, Doctors) {
+    return { id, name, location, city, Doctors };
   }
 
   const rows = fetchedHospitals.map((eachHospital) =>
     createData(
+      eachHospital.id,
       eachHospital.name,
       eachHospital.location,
       eachHospital.city.name,
@@ -144,9 +145,12 @@ export default function Hospitals() {
       } else {
         try {
           const response = await fetch(
-            `${Conn}/hospitals/get/${localStorage.getItem("token")}/?page=${
-              page + 1
-            }&limit=${rowsPerPage}`
+            `${Conn}/hospitals/get/?page=${page + 1}&limit=${rowsPerPage}`,
+            {
+              headers: {
+                authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            }
           );
           const result = await response.json();
 
@@ -210,6 +214,11 @@ export default function Hospitals() {
             <TableRow sx={{ marginBottom: "2rem" }}>
               <TableCell>
                 <Typography variant="h5" color="green">
+                  Id
+                </Typography>
+              </TableCell>
+              <TableCell>
+                <Typography variant="h5" color="green">
                   Name
                 </Typography>
               </TableCell>
@@ -233,7 +242,10 @@ export default function Hospitals() {
           <TableBody>
             {rows.map((row) => (
               <TableRow key={row.name}>
-                <TableCell component="th" scope="row">
+                <TableCell style={{ width: 80 }} component="th" scope="row">
+                  {row.id}
+                </TableCell>
+                <TableCell style={{ width: 160 }} component="th" scope="row">
                   {row.name}
                 </TableCell>
                 <TableCell style={{ width: 160 }} align="center">
@@ -252,7 +264,7 @@ export default function Hospitals() {
             <TableRow>
               <TablePagination
                 rowsPerPageOptions={[5, 10, 25, { label: "All", value: -1 }]}
-                colSpan={2}
+                colSpan={4}
                 count={totalCount}
                 rowsPerPage={rowsPerPage}
                 page={page}

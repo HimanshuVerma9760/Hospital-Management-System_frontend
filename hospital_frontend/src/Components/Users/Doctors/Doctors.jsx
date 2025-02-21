@@ -39,11 +39,12 @@ import ModalContent from "../../Modal/ModalContent";
 const Conn = import.meta.env.VITE_CONN_URI;
 
 export default function Doctors() {
-  const [specialization, setSpecialization] = useState("all");
+  const [specialization, setSpecialization] = useState(0);
   const navigate = useNavigate();
   const [isVerified, setIsVerified] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [fetchedDoctors, setFetchedDoctors] = useState([]);
+  const [op, setOp] = useState(false);
   const [showPrompt, setShowPrompt] = useState({
     state: false,
     type: "",
@@ -53,6 +54,11 @@ export default function Doctors() {
     },
   });
   const reqId = React.useRef();
+  useEffect(() => {
+    if (localStorage.getItem("op")) {
+      setOp(true);
+    }
+  }, [op]);
 
   function TablePaginationActions(props) {
     const theme = useTheme();
@@ -130,7 +136,7 @@ export default function Doctors() {
     createData(
       eachDoctor.id,
       eachDoctor.name,
-      eachDoctor.specialization,
+      eachDoctor.specialization.name,
       eachDoctor.city.name,
       eachDoctor.hospital.name,
       eachDoctor.status
@@ -163,11 +169,14 @@ export default function Doctors() {
       } else {
         try {
           const response = await fetch(
-            `${Conn}/doctors/get-doctors/${localStorage.getItem(
-              "token"
-            )}/?page=${
+            `${Conn}/doctors/get-doctors/?page=${
               page + 1
-            }&limit=${rowsPerPage}&specialization=${specialization}`
+            }&limit=${rowsPerPage}&specialization=${specialization}`,
+            {
+              headers: {
+                authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            }
           );
 
           if (response.ok) {
@@ -230,6 +239,7 @@ export default function Doctors() {
       const response = await fetch(`${Conn}/specializations`);
       if (response.ok) {
         const result = await response.json();
+        // console.log(result.result);
         setSpecializations(result.result);
       } else {
         console.error("Error fetching specializations:", result);
@@ -268,6 +278,10 @@ export default function Doctors() {
       />
     );
   }
+  setTimeout(() => {
+    localStorage.removeItem("op");
+    setOp(false);
+  }, 2000);
   return (
     <>
       <Grid2 display="flex" justifyContent="end" gap="1rem" alignItems="center">
@@ -283,14 +297,14 @@ export default function Doctors() {
             sx={{ marginBottom: "5px" }}
             onClick={() => setPage(0)}
           >
-            <MenuItem id="all" value="all">
+            <MenuItem id="all" value={0}>
               All
             </MenuItem>
             {specializations.map((eachSpecialization) => (
               <MenuItem
                 id={eachSpecialization.name}
                 key={eachSpecialization.id}
-                value={eachSpecialization.name}
+                value={eachSpecialization.id}
               >
                 {eachSpecialization.name}
               </MenuItem>
@@ -319,10 +333,16 @@ export default function Doctors() {
       {rows.length === 0 && (
         <Alert severity="info">No doctors found for the selected filter</Alert>
       )}
+      {op && <Alert severity="success">{localStorage.getItem("op")}</Alert>}
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 500 }} aria-label="custom pagination table">
           <TableHead>
             <TableRow sx={{ marginBottom: "2rem" }}>
+              <TableCell>
+                <Typography variant="h5" color="green">
+                  Id
+                </Typography>
+              </TableCell>
               <TableCell>
                 <Typography variant="h5" color="green">
                   Name
@@ -357,8 +377,11 @@ export default function Doctors() {
           </TableHead>
           <TableBody>
             {rows.map((row) => (
-              <TableRow key={row.name}>
+              <TableRow key={row.id}>
                 <TableCell component="th" scope="row">
+                  {row.id}
+                </TableCell>
+                <TableCell style={{ width: 160 }} component="th" scope="row">
                   {row.name}
                 </TableCell>
                 <TableCell style={{ width: 160 }} align="center">

@@ -52,7 +52,7 @@ export default function AddDoctor() {
     const response = await fetch(`${Conn}/specializations`);
     if (response.ok) {
       const result = await response.json();
-      console.log(specializations);
+      // console.log(specializations);
       setSpecializations(result.result);
     } else {
       console.log("Some error occured");
@@ -201,33 +201,21 @@ export default function AddDoctor() {
   async function onSubmitHandler(event) {
     event.preventDefault();
     setSubmissionProgress(true);
-    const verifiedUser = await useAuth();
-    if (
-      !(
-        verifiedUser.response &&
-        (verifiedUser.role === "Super-Admin" || verifiedUser.role === "Admin")
-      )
-    ) {
-      setIsVerified(false);
-      return;
-    }
     const formData = {
       name: name,
-      specialization: specialization,
+      specialization_id: specialization,
       city_id: city,
       hospital_id: hospital,
     };
 
-    const response = await fetch(
-      `${Conn}/doctors/add/${localStorage.getItem("token")}`,
-      {
-        method: "post",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      }
-    );
+    const response = await fetch(`${Conn}/doctors/add`, {
+      method: "post",
+      headers: {
+        "Content-Type": "application/json",
+        authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      body: JSON.stringify(formData),
+    });
     if (response) {
       const result = await response.json();
       setSubmissionProgress(false);
@@ -345,7 +333,8 @@ export default function AddDoctor() {
                 ) : (
                   specializations.map((eachSpecialization) => (
                     <MenuItem
-                      value={eachSpecialization.name}
+                      id={eachSpecialization.id}
+                      value={eachSpecialization.id}
                       key={eachSpecialization.id}
                     >
                       {eachSpecialization.name}
@@ -374,7 +363,11 @@ export default function AddDoctor() {
                   </Grid2>
                 ) : (
                   cities.map((eachCity) => (
-                    <MenuItem value={eachCity.id} key={eachCity.id}>
+                    <MenuItem
+                      id={eachCity.id}
+                      value={eachCity.id}
+                      key={eachCity.id}
+                    >
                       {eachCity.name}
                     </MenuItem>
                   ))

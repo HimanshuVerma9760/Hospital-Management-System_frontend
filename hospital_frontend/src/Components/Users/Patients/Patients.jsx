@@ -121,12 +121,13 @@ export default function Patients() {
     rowsPerPage: PropTypes.number.isRequired,
   };
 
-  function createData(name, city, hospital, disease, Doctor) {
-    return { name, city, hospital, disease, Doctor };
+  function createData(id, name, city, hospital, disease, Doctor) {
+    return { id, name, city, hospital, disease, Doctor };
   }
 
   const rows = fetchedPatients.map((eachPatient) =>
     createData(
+      eachPatient.id,
       eachPatient.name,
       eachPatient.city.name,
       eachPatient.hospital.name,
@@ -238,6 +239,11 @@ export default function Patients() {
             <TableRow sx={{ marginBottom: "2rem" }}>
               <TableCell>
                 <Typography variant="h5" color="green">
+                  Id
+                </Typography>
+              </TableCell>
+              <TableCell>
+                <Typography variant="h5" color="green">
                   Name
                 </Typography>
               </TableCell>
@@ -267,6 +273,9 @@ export default function Patients() {
             {rows.map((row) => (
               <TableRow key={row.name}>
                 <TableCell component="th" scope="row">
+                  {row.id}
+                </TableCell>
+                <TableCell component="th" scope="row">
                   {row.name}
                 </TableCell>
                 <TableCell style={{ width: 160 }} align="center">
@@ -288,7 +297,7 @@ export default function Patients() {
             <TableRow>
               <TablePagination
                 rowsPerPageOptions={[5, 10, 25, { label: "All", value: -1 }]}
-                colSpan={3}
+                colSpan={4}
                 count={totalCount}
                 rowsPerPage={rowsPerPage}
                 page={page}

@@ -101,10 +101,11 @@ export default function AddHospital() {
       city_id: city,
     };
 
-    const response = await fetch(`${Conn}/hospitals/add/${localStorage.getItem("token")}`, {
+    const response = await fetch(`${Conn}/hospitals/add`, {
       method: "post",
       headers: {
         "Content-Type": "application/json",
+        authorization: `Bearer ${localStorage.getItem("token")}`,
       },
       body: JSON.stringify(formData),
     });

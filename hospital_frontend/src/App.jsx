@@ -11,6 +11,7 @@ import AddHospital from "./Components/Users/Hospitals/AddHospital";
 import AddDoctor from "./Components/Users/Doctors/AddDoctor";
 import Patients from "./Components/Users/Patients/Patients";
 import AddPatient from "./Components/Users/Patients/AddPatient";
+import EditDoctor from "./Components/Users/Doctors/EditDoctor";
 
 export default function App() {
   const theme = createTheme({
@@ -37,6 +38,10 @@ export default function App() {
         {
           path: "doctors/add",
           element: <AddDoctor />,
+        },
+        {
+          path: "doctors/edit",
+          element: <EditDoctor />,
         },
         {
           path: "hospitals",

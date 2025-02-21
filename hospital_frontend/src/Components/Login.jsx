@@ -5,12 +5,14 @@ import {
   CircularProgress,
   CssBaseline,
   Grid2,
+  Skeleton,
   TextField,
   Typography,
 } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Form, useNavigate } from "react-router";
 import { motion } from "motion/react";
+import useAuth from "../util/useAuth";
 const Conn = import.meta.env.VITE_CONN_URI;
 
 export default function Login() {
@@ -19,12 +21,26 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [formError, setFormError] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [pageLoading, setPageLoading] = useState(true);
   const [responseError, setResponseError] = useState(false);
 
   const [error, setError] = useState({
     emailError: { state: false, message: "" },
     passwordError: { state: false, message: "" },
   });
+
+  useEffect(() => {
+    async function checkAuth() {
+      const verifiedUser = await useAuth();
+      if (verifiedUser.response) {
+        navigate("/users/doctors");
+      } else {
+        localStorage.clear();
+      }
+      setPageLoading(false);
+    }
+    checkAuth();
+  }, []);
   async function onSubmitHandler(event) {
     event.preventDefault();
     setIsLoading(true);
@@ -118,6 +134,22 @@ export default function Login() {
     }
   }
 
+  if (pageLoading) {
+    return (
+      <Grid2
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "1rem",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Skeleton variant="rectangular" width={300} height={300} />
+        <Skeleton variant="rectangular" width={300} height={300} />
+      </Grid2>
+    );
+  }
   return (
     <>
       <motion.div
@@ -139,7 +171,7 @@ export default function Login() {
                 backgroundColor: "white",
                 // paddingTop: "3rem",
                 // paddingBottom: "5rem",
-                minHeight:"30rem",
+                minHeight: "30rem",
                 borderRadius: "2rem",
                 boxShadow: "0px 1px 2px 0px",
               }}
@@ -213,7 +245,12 @@ export default function Login() {
                     error.passwordError.state ||
                     formError
                   }
-                sx={{backgroundColor:"green", color:"white", padding:"0.6rem", marginTop:"1rem"}}
+                  sx={{
+                    backgroundColor: "green",
+                    color: "white",
+                    padding: "0.6rem",
+                    marginTop: "1rem",
+                  }}
                 >
                   Login
                 </Button>

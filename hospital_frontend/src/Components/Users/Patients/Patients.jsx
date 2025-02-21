@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import useAuth from "../../../util/useAuth";
 import {
   Alert,
+  Button,
   Grid2,
   ListItemButton,
   ListItemIcon,
@@ -167,7 +168,10 @@ export default function Patients() {
     );
   } else if (!isVerified) {
     return (
-      <Alert severity="error">You are not authorised to view this page.</Alert>
+      <Alert severity="error">
+        You Are Not Authorised to view this page. Kindly{" "}
+        <Link to="/">Login</Link>
+      </Alert>
     );
   }
 
@@ -175,12 +179,22 @@ export default function Patients() {
     <>
       <Grid2 display="flex" justifyContent="end">
         <Link to="add" style={{ textDecoration: "none", color: "black" }}>
-          <ListItemButton sx={{ maxWidth: "12rem", borderRadius: "6px" }}>
-            <ListItemIcon>
+          <Button
+            variant="contained"
+            size="small"
+            sx={{
+              borderRadius: "6px",
+              backgroundColor: "green",
+              marginBottom: "5px",
+            }}
+          >
+            <ListItemIcon sx={{ color: "white" }}>
               <Add />
             </ListItemIcon>
-            <ListItemText>Add Patient</ListItemText>
-          </ListItemButton>
+            <ListItemText sx={{ color: "white", paddingRight: "5px" }}>
+              Add Patient
+            </ListItemText>
+          </Button>
         </Link>
       </Grid2>
       <TableContainer component={Paper}>

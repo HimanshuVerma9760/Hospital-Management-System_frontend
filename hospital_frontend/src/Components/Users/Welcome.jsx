@@ -18,7 +18,12 @@ import {
   Alert,
 } from "@mui/material";
 import HomeIcon from "@mui/icons-material/Home";
-import { ListAltOutlined, LocalHospital, Logout, Person } from "@mui/icons-material";
+import {
+  ListAltOutlined,
+  LocalHospital,
+  Logout,
+  Person,
+} from "@mui/icons-material";
 import { Link, Outlet, useNavigate } from "react-router";
 import useAuth from "../../util/useAuth";
 import { deepOrange } from "@mui/material/colors";
@@ -79,7 +84,8 @@ export default function Welcome() {
     return (
       <Box sx={{ margin: "20px" }}>
         <Alert severity="error">
-          You Are Not Authorised to view this page.
+          You Are Not Authorised to view this page. Kindly{" "}
+          <Link to="/">Login</Link>
         </Alert>
       </Box>
     );

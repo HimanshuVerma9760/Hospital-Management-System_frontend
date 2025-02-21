@@ -3,12 +3,17 @@ import useAuth from "../../../util/useAuth";
 import {
   Alert,
   Button,
+  FormControl,
   Grid2,
+  InputLabel,
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  MenuItem,
+  Select,
   Skeleton,
   TableHead,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import * as React from "react";
@@ -28,14 +33,26 @@ import FirstPageIcon from "@mui/icons-material/FirstPage";
 import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import LastPageIcon from "@mui/icons-material/LastPage";
-import { Add } from "@mui/icons-material";
-import { Link } from "react-router";
+import { Add, Delete, Edit, Restore } from "@mui/icons-material";
+import { Link, useNavigate } from "react-router";
+import ModalContent from "../../Modal/ModalContent";
 const Conn = import.meta.env.VITE_CONN_URI;
 
 export default function Doctors() {
+  const [specialization, setSpecialization] = useState("all");
+  const navigate = useNavigate();
   const [isVerified, setIsVerified] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [fetchedDoctors, setFetchedDoctors] = useState([]);
+  const [showPrompt, setShowPrompt] = useState({
+    state: false,
+    type: "",
+    message: {
+      message: "",
+      caption: "",
+    },
+  });
+  const reqId = React.useRef();
 
   function TablePaginationActions(props) {
     const theme = useTheme();
@@ -105,16 +122,18 @@ export default function Doctors() {
     rowsPerPage: PropTypes.number.isRequired,
   };
 
-  function createData(name, specialization, city, hospital) {
-    return { name, specialization, city, hospital };
+  function createData(id, name, specialization, city, hospital, status) {
+    return { id, name, specialization, city, hospital, status };
   }
 
   const rows = fetchedDoctors.map((eachDoctor) =>
     createData(
+      eachDoctor.id,
       eachDoctor.name,
       eachDoctor.specialization,
       eachDoctor.city.name,
-      eachDoctor.hospital.name
+      eachDoctor.hospital.name,
+      eachDoctor.status
     )
   );
 
@@ -144,12 +163,15 @@ export default function Doctors() {
       } else {
         try {
           const response = await fetch(
-            `${Conn}/doctors/?page=${page + 1}&limit=${rowsPerPage}`
+            `${Conn}/doctors/get-doctors/${localStorage.getItem(
+              "token"
+            )}/?page=${
+              page + 1
+            }&limit=${rowsPerPage}&specialization=${specialization}`
           );
-          const result = await response.json();
-          console.log("API Response:", result); // Debugging
 
           if (response.ok) {
+            const result = await response.json();
             setFetchedDoctors(result.result);
             setTotalCount(result.totalRecords);
           } else {
@@ -162,7 +184,59 @@ export default function Doctors() {
       setIsLoading(false);
     }
     checkAuth();
-  }, [page, rowsPerPage]);
+  }, [page, rowsPerPage, showPrompt.state, specialization]);
+
+  function onClose() {
+    setShowPrompt((prevState) => ({
+      ...prevState,
+      state: false,
+      message: {
+        message: "",
+        caption: "",
+      },
+    }));
+  }
+  function deleteHandler(id) {
+    reqId.current = id;
+    setShowPrompt((prevState) => ({
+      ...prevState,
+      state: true,
+      type: "delete",
+      message: {
+        message: "Delete Doctor",
+        caption: "This will wark the selected doctor as inactive",
+      },
+    }));
+  }
+  function restoreHandler(id) {
+    reqId.current = id;
+    setShowPrompt((prevState) => ({
+      ...prevState,
+      type: "restore",
+      state: true,
+      message: {
+        message: "Restore Doctor",
+        caption: "This will mark the doctor active again",
+      },
+    }));
+  }
+  function editHandler(id) {
+    localStorage.setItem("id", id);
+    navigate("edit");
+  }
+  const [specializations, setSpecializations] = useState([]);
+  useEffect(() => {
+    async function getSpecialization() {
+      const response = await fetch(`${Conn}/specializations`);
+      if (response.ok) {
+        const result = await response.json();
+        setSpecializations(result.result);
+      } else {
+        console.error("Error fetching specializations:", result);
+      }
+    }
+    getSpecialization();
+  }, []);
 
   if (isLoading) {
     return (
@@ -174,20 +248,69 @@ export default function Doctors() {
     );
   } else if (!isVerified) {
     return (
-      <Alert severity="error">You are not authorised to view this page.</Alert>
+      <Alert severity="error">
+        You Are Not Authorised to view this page. Kindly{" "}
+        <Link to="/">Login</Link>
+      </Alert>
+    );
+  } else if (showPrompt.state) {
+    return (
+      <ModalContent
+        btn="Are you sure"
+        isOpen={showPrompt.state}
+        onClose={onClose}
+        message={{
+          message: showPrompt.message.message,
+          caption: showPrompt.message.caption,
+          id: reqId.current,
+        }}
+        type={showPrompt.type}
+      />
     );
   }
-
   return (
     <>
-      <Grid2 display="flex" justifyContent="end">
-      <Link to='add' style={{textDecoration:"none", color:"black"}}>
-        <ListItemButton sx={{ maxWidth: "12rem", borderRadius: "6px" }}>
-          <ListItemIcon>
-            <Add />
-          </ListItemIcon>
-          <ListItemText>Add Doctor</ListItemText>
-        </ListItemButton>
+      <Grid2 display="flex" justifyContent="end" gap="1rem" alignItems="center">
+        <FormControl sx={{ minWidth: 150 }}>
+          <InputLabel id="specialization">Specialization</InputLabel>
+          <Select
+            labelId="specialization"
+            label="Specialization"
+            id="specialization"
+            name="specialization"
+            value={specialization}
+            onChange={(e) => setSpecialization(e.target.value)}
+            sx={{ marginBottom: "5px" }}
+            onClick={() => setPage(0)}
+          >
+            <MenuItem value="all">All</MenuItem>
+            {specializations.map((eachSpecialization) => (
+              <MenuItem
+                key={eachSpecialization.id}
+                value={eachSpecialization.name}
+              >
+                {eachSpecialization.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <Link to="add" style={{ textDecoration: "none", color: "black" }}>
+          <Button
+            variant="contained"
+            size="small"
+            sx={{
+              borderRadius: "6px",
+              backgroundColor: "green",
+              marginBottom: "5px",
+            }}
+          >
+            <ListItemIcon sx={{ color: "white" }}>
+              <Add />
+            </ListItemIcon>
+            <ListItemText sx={{ color: "white", paddingRight: "5px" }}>
+              Add Doctor
+            </ListItemText>
+          </Button>
         </Link>
       </Grid2>
       <TableContainer component={Paper}>
@@ -214,6 +337,16 @@ export default function Doctors() {
                   Hospital
                 </Typography>
               </TableCell>
+              <TableCell align="center">
+                <Typography variant="h5" color="green">
+                  Status
+                </Typography>
+              </TableCell>
+              <TableCell align="center">
+                <Typography variant="h5" color="green">
+                  Action
+                </Typography>
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -231,6 +364,36 @@ export default function Doctors() {
                 <TableCell style={{ width: 160 }} align="center">
                   {row.hospital}
                 </TableCell>
+                <TableCell style={{ width: 160 }} align="center">
+                  {row.status ? "Active" : "Inactive"}
+                </TableCell>
+                <TableCell
+                  style={{ width: 160 }}
+                  align="center"
+                  sx={{ display: "flex", justifyContent: "left", gap: "2rem" }}
+                >
+                  <Tooltip title="Edit">
+                    <IconButton
+                      onClick={() => editHandler(row.id)}
+                      sx={{ color: "lightslategray" }}
+                    >
+                      <Edit />
+                    </IconButton>
+                  </Tooltip>
+                  {!row.status ? (
+                    <Tooltip title="Restore">
+                      <IconButton sx={{ color: "lightslategray" }}>
+                        <Restore onClick={() => restoreHandler(row.id)} />
+                      </IconButton>
+                    </Tooltip>
+                  ) : (
+                    <Tooltip title="Delete">
+                      <IconButton sx={{ color: "red" }}>
+                        <Delete onClick={() => deleteHandler(row.id)} />
+                      </IconButton>
+                    </Tooltip>
+                  )}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -238,7 +401,7 @@ export default function Doctors() {
             <TableRow>
               <TablePagination
                 rowsPerPageOptions={[5, 10, 25, { label: "All", value: -1 }]}
-                colSpan={2}
+                colSpan={4}
                 count={totalCount}
                 rowsPerPage={rowsPerPage}
                 page={page}

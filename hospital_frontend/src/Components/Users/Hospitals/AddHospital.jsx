@@ -101,7 +101,7 @@ export default function AddHospital() {
       city_id: city,
     };
 
-    const response = await fetch(`${Conn}/hospitals`, {
+    const response = await fetch(`${Conn}/hospitals/add/${localStorage.getItem("token")}`, {
       method: "post",
       headers: {
         "Content-Type": "application/json",

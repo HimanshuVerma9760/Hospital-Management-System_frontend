@@ -13,12 +13,13 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import { useEffect, useState } from "react";
-import { Form } from "react-router";
+import { useEffect, useRef, useState } from "react";
+import { Form, useLocation } from "react-router";
 import useAuth from "../../../util/useAuth";
+import ModalContent from "../../Modal/ModalContent";
 const Conn = import.meta.env.VITE_CONN_URI;
 
-export default function AddDoctor() {
+export default function EditDoctor() {
   const [cities, setCities] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isVerified, setIsVerified] = useState(true);
@@ -29,7 +30,46 @@ export default function AddDoctor() {
   const [hospital, setHospital] = useState("");
   const [hospitals, setHospitals] = useState([]);
   const [message, setMessage] = useState("");
-  const [specializations, setSpecializations] = useState([]);
+  const [dbResult, setDbResult] = useState({});
+  const [showPrompt, setShowPrompt] = useState({
+    state: false,
+    type: "",
+    message: {
+      message: "",
+      caption: "",
+    },
+  });
+
+  const reqId = useRef();
+
+  useEffect(() => {
+    async function fetchDoctor() {
+      const response = await fetch(`${Conn}/doctors/get/${reqId.current}`);
+      if (response.ok) {
+        const result = await response.json();
+        setDbResult(result.doctor);
+        setName(result.doctor.name);
+        setSpecialization(result.doctor.specialization);
+        setCity(result.doctor.city_id);
+        setHospital(result.doctor.hospital_id);
+      } else {
+        console.log("Some error occured");
+      }
+    }
+    const id = localStorage.getItem("id");
+    if (!id) {
+      setShowPrompt({
+        state: true,
+        message: {
+          message: "No doctor id found",
+          caption: "Redirecting to doctor page",
+        },
+      });
+      return;
+    }
+    reqId.current = localStorage.getItem("id");
+    fetchDoctor();
+  }, []);
   async function fetchCities() {
     const response = await fetch(`${Conn}/cities`);
     if (response.ok) {
@@ -48,16 +88,6 @@ export default function AddDoctor() {
       console.log("Some error occured");
     }
   }
-  async function fetchSpecializations() {
-    const response = await fetch(`${Conn}/specializations`);
-    if (response.ok) {
-      const result = await response.json();
-      console.log(specializations);
-      setSpecializations(result.result);
-    } else {
-      console.log("Some error occured");
-    }
-  }
   useEffect(() => {
     async function checkAuth() {
       const verifiedUser = await useAuth();
@@ -67,7 +97,6 @@ export default function AddDoctor() {
         setIsLoading(false);
         fetchCities();
         fetchHospitals();
-        fetchSpecializations();
       }
     }
     checkAuth();
@@ -159,7 +188,7 @@ export default function AddDoctor() {
         break;
 
       case "specialization":
-        if (value.trim().length === 0) {
+        if (containsNumber(value) || value.trim().length === 0) {
           setError((prevState) => ({
             ...prevState,
             specializationError: {
@@ -211,6 +240,7 @@ export default function AddDoctor() {
       setIsVerified(false);
       return;
     }
+
     const formData = {
       name: name,
       specialization: specialization,
@@ -219,9 +249,11 @@ export default function AddDoctor() {
     };
 
     const response = await fetch(
-      `${Conn}/doctors/add/${localStorage.getItem("token")}`,
+      `${Conn}/doctors/update/${reqId.current}/${localStorage.getItem(
+        "token"
+      )}`,
       {
-        method: "post",
+        method: "put",
         headers: {
           "Content-Type": "application/json",
         },
@@ -274,6 +306,23 @@ export default function AddDoctor() {
       </Alert>
     );
   }
+  function onCloseHandler() {
+    setShowPrompt(false);
+  }
+  if (showPrompt.state) {
+    return (
+      <ModalContent
+        btn={{ text: "Doctor page", loc: "/users/doctors" }}
+        isOpen={showPrompt.state}
+        onClose={onCloseHandler}
+        message={{
+          message: showPrompt.message.message,
+          caption: showPrompt.message.caption,
+        }}
+      />
+    );
+  }
+  localStorage.removeItem("id");
   return (
     <>
       <Box
@@ -287,7 +336,7 @@ export default function AddDoctor() {
       >
         <Grid2 sx={{ marginBottom: "2rem", paddingTop: "3rem" }}>
           <Typography variant="h4" align="center">
-            Add Doctor
+            Edit Doctor
           </Typography>
           <Typography
             variant="caption"
@@ -327,36 +376,16 @@ export default function AddDoctor() {
               helperText={error.nameError.message}
               onChange={onChangeHandler}
             />
-            <FormControl error={error.specializationError.state}>
-              <InputLabel id="specializationLabel">Specialization</InputLabel>
-              <Select
-                labelId="specializationLabel"
-                id="specialization"
-                name="specialization"
-                label="Specialization"
-                value={specialization}
-                onChange={onChangeHandler}
-                onBlur={onBlurHandler}
-              >
-                {isLoading ? (
-                  <Grid2 display="flex" justifyContent="center">
-                    <CircularProgress />
-                  </Grid2>
-                ) : (
-                  specializations.map((eachSpecialization) => (
-                    <MenuItem
-                      value={eachSpecialization.name}
-                      key={eachSpecialization.id}
-                    >
-                      {eachSpecialization.name}
-                    </MenuItem>
-                  ))
-                )}
-              </Select>
-              <FormHelperText>
-                {error.specializationError.message}
-              </FormHelperText>
-            </FormControl>
+            <TextField
+              name="specialization"
+              id="specialization"
+              label="Enter specialization of the doctor"
+              value={specialization}
+              onBlur={onBlurHandler}
+              error={error.specializationError.state}
+              helperText={error.specializationError.message}
+              onChange={onChangeHandler}
+            />
             <FormControl error={error.cityError.state}>
               <InputLabel id="cityLabel">City</InputLabel>
               <Select
@@ -418,7 +447,7 @@ export default function AddDoctor() {
                 error.cityError.state
               }
             >
-              Add
+              Submit
             </Button>
           </Grid2>
         </Form>

@@ -245,7 +245,7 @@ export default function AddPatient() {
     }
     const formData = {
       name: name,
-      disease: disease,
+      disease_id: Number(disease),
       city_id: city,
       hospital_id: hospital,
       doctor_id: doctor,
@@ -375,7 +375,7 @@ export default function AddPatient() {
                   </Grid2>
                 ) : (
                   diseases.map((eachDisease) => (
-                    <MenuItem value={eachDisease.name} key={eachDisease.id}>
+                    <MenuItem value={eachDisease.id} key={eachDisease.id}>
                       {eachDisease.name}
                     </MenuItem>
                   ))

@@ -36,7 +36,7 @@ import { Link } from "react-router";
 const Conn = import.meta.env.VITE_CONN_URI;
 
 export default function Patients() {
-  const [disease, setDisease] = useState("all");
+  const [disease, setDisease] = useState(0);
   const [diseases, setDiseases] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [fetchedPatients, setFetchedPatients] = useState([]);
@@ -131,7 +131,7 @@ export default function Patients() {
       eachPatient.name,
       eachPatient.city.name,
       eachPatient.hospital.name,
-      eachPatient.disease,
+      eachPatient.disease.name,
       eachPatient.doctor.name
     )
   );
@@ -197,14 +197,14 @@ export default function Patients() {
             sx={{ marginBottom: "5px" }}
             onClick={() => setPage(0)}
           >
-            <MenuItem id="all" value="all">
+            <MenuItem id="all" value={0}>
               All
             </MenuItem>
             {diseases.map((eachDisease) => (
               <MenuItem
                 key={eachDisease.id}
                 id={eachDisease.name}
-                value={eachDisease.name}
+                value={eachDisease.id}
               >
                 {eachDisease.name}
               </MenuItem>

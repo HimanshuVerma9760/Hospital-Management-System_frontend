@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import useAuth from "../../../util/useAuth";
 import {
   Alert,
   Button,
@@ -13,7 +12,6 @@ import {
   Select,
   Skeleton,
   TableHead,
-  Tooltip,
   Typography,
 } from "@mui/material";
 import * as React from "react";
@@ -33,33 +31,33 @@ import FirstPageIcon from "@mui/icons-material/FirstPage";
 import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import LastPageIcon from "@mui/icons-material/LastPage";
-import { Add, Delete, Edit, Restore } from "@mui/icons-material";
-import { Link, useNavigate } from "react-router";
-import ModalContent from "../../Modal/ModalContent";
+import { Add } from "@mui/icons-material";
+import { Link } from "react-router";
+import CheckoutPage from "./CheckoutPage";
 const Conn = import.meta.env.VITE_CONN_URI;
 
-export default function Doctors() {
-  const [specialization, setSpecialization] = useState(0);
-  const navigate = useNavigate();
-  const [isVerified, setIsVerified] = useState(true);
+export default function Appointments() {
+  const [paymentStatus, setPaymentStatus] = useState(0);
+  //   const [diseases, setDiseases] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [fetchedDoctors, setFetchedDoctors] = useState([]);
-  const [op, setOp] = useState(false);
-  const [showPrompt, setShowPrompt] = useState({
+  const [fetchedOrders, setFetchedOrders] = useState([]);
+  const [isCard, setIsCard] = useState({
     state: false,
-    type: "",
-    message: {
-      message: "",
-      caption: "",
-    },
+    orderDetails: {},
   });
-  const reqId = React.useRef();
-  useEffect(() => {
-    if (localStorage.getItem("op")) {
-      setOp(true);
-    }
-  }, [op]);
 
+  //   async function fetchDiseases() {
+  //     const response = await fetch(`${Conn}/diseases`);
+  //     if (response.ok) {
+  //       const result = await response.json();
+  //       setDiseases(result.result);
+  //     } else {
+  //       console.log("Some error occured");
+  //     }
+  //   }
+  //   useEffect(() => {
+  //     fetchDiseases();
+  //   }, []);
   function TablePaginationActions(props) {
     const theme = useTheme();
     const { count, page, rowsPerPage, onPageChange } = props;
@@ -127,19 +125,59 @@ export default function Doctors() {
     page: PropTypes.number.isRequired,
     rowsPerPage: PropTypes.number.isRequired,
   };
+  function splitDateTime(isoString) {
+    const dateObj = new Date(isoString);
 
-  function createData(id, name, specialization, city, hospital, status) {
-    return { id, name, specialization, city, hospital, status };
+    const date = dateObj.toISOString().split("T")[0];
+
+    let hours = dateObj.getUTCHours();
+    const minutes = String(dateObj.getUTCMinutes()).padStart(2, "0");
+    const amPm = hours >= 12 ? "PM" : "AM";
+
+    hours = hours % 12 || 12;
+
+    const time = `${hours}:${minutes} ${amPm}`;
+
+    return { date, time };
   }
 
-  const rows = fetchedDoctors.map((eachDoctor) =>
+  function createData(
+    id,
+    appointment_id,
+    name,
+    email,
+    dateTime,
+    status,
+    amount,
+    paymentMethod,
+    paymentStatus
+  ) {
+    const { date, time } = splitDateTime(dateTime);
+    return {
+      id,
+      appointment_id,
+      name,
+      email,
+      date,
+      time,
+      status,
+      amount,
+      paymentMethod,
+      paymentStatus,
+    };
+  }
+
+  const rows = fetchedOrders.map((eachOrder) =>
     createData(
-      eachDoctor.id,
-      eachDoctor.name,
-      eachDoctor.specialization.name,
-      eachDoctor.city.name,
-      eachDoctor.hospital.name,
-      eachDoctor.status
+      eachOrder.id,
+      eachOrder.appointment_id,
+      eachOrder.appointment.patientName,
+      eachOrder.appointment.patientEmail,
+      eachOrder.appointment.appointment_datetime,
+      eachOrder.appointment.status,
+      eachOrder.amount,
+      eachOrder.paymentMethod,
+      eachOrder.paymentStatus
     )
   );
 
@@ -157,96 +195,34 @@ export default function Doctors() {
   };
   useEffect(() => {
     setIsLoading(true);
-    async function checkAuth() {
-      const verfiedUser = await useAuth();
-      if (
-        !(
-          verfiedUser.response &&
-          (verfiedUser.role === "Super-Admin" || verfiedUser.role === "Admin")
-        )
-      ) {
-        setIsVerified(false);
-      } else {
-        try {
-          const response = await fetch(
-            `${Conn}/doctors/get-doctors/?page=${
-              page + 1
-            }&limit=${rowsPerPage}&specialization=${specialization}`,
-            {
-              headers: {
-                authorization: `Bearer ${localStorage.getItem("token")}`,
-              },
-            }
-          );
-
-          if (response.ok) {
-            const result = await response.json();
-            setFetchedDoctors(result.result);
-            setTotalCount(result.totalRecords);
-          } else {
-            console.error("Error fetching doctors:", result);
-          }
-        } catch (error) {
-          console.error("Fetch error:", error);
+    async function fetchData() {
+      try {
+        const response = await fetch(
+          `${Conn}/orders/get-all/?page=${page + 1}&limit=${rowsPerPage}`
+        );
+        const result = await response.json();
+        if (response.ok) {
+          setFetchedOrders(result.result);
+          setTotalCount(result.totalRecords);
+        } else {
+          console.error("Error fetching doctors:", result);
         }
+      } catch (error) {
+        console.error("Fetch error:", error);
       }
       setIsLoading(false);
     }
-    checkAuth();
-  }, [page, rowsPerPage, showPrompt.state, specialization]);
+    fetchData();
+  }, [page, rowsPerPage, paymentStatus]);
 
-  function onClose() {
-    setShowPrompt((prevState) => ({
-      ...prevState,
-      state: false,
-      message: {
-        message: "",
-        caption: "",
-      },
-    }));
-  }
-  function deleteHandler(id) {
-    reqId.current = id;
-    setShowPrompt((prevState) => ({
+  function paymentHandler(order) {
+    // setIsLoading(false);
+    setIsCard((prevState) => ({
       ...prevState,
       state: true,
-      type: "delete",
-      message: {
-        message: "Delete Doctor",
-        caption: "This will wark the selected doctor as inactive",
-      },
+      orderDetails: order,
     }));
   }
-  function restoreHandler(id) {
-    reqId.current = id;
-    setShowPrompt((prevState) => ({
-      ...prevState,
-      type: "restore",
-      state: true,
-      message: {
-        message: "Restore Doctor",
-        caption: "This will mark the doctor active again",
-      },
-    }));
-  }
-  function editHandler(id) {
-    localStorage.setItem("id", id);
-    navigate("edit");
-  }
-  const [specializations, setSpecializations] = useState([]);
-  useEffect(() => {
-    async function getSpecialization() {
-      const response = await fetch(`${Conn}/specializations`);
-      if (response.ok) {
-        const result = await response.json();
-        // console.log(result.result);
-        setSpecializations(result.result);
-      } else {
-        console.error("Error fetching specializations:", result);
-      }
-    }
-    getSpecialization();
-  }, []);
 
   if (isLoading) {
     return (
@@ -256,62 +232,41 @@ export default function Doctors() {
         <Skeleton variant="rectangular" height={100} />
       </>
     );
-  } else if (!isVerified) {
-    return (
-      <Alert severity="error">
-        You Are Not Authorised to view this page. Kindly{" "}
-        <Link to="/">Login</Link>
-      </Alert>
-    );
-  } else if (showPrompt.state) {
-    return (
-      <ModalContent
-        btn="Are you sure"
-        isOpen={showPrompt.state}
-        onClose={onClose}
-        message={{
-          message: showPrompt.message.message,
-          caption: showPrompt.message.caption,
-          id: reqId.current,
-        }}
-        type={showPrompt.type}
-      />
-    );
   }
-  setTimeout(() => {
-    localStorage.removeItem("op");
-    setOp(false);
-  }, 2000);
+  if (isCard.state) {
+    console.log(isCard.orderDetails);
+    return <CheckoutPage order={isCard.orderDetails} />;
+  }
   return (
     <>
       <Grid2 display="flex" justifyContent="end" gap="1rem" alignItems="center">
-        <FormControl sx={{ minWidth: 150 }}>
-          <InputLabel id="specialization">Specialization</InputLabel>
+        {/* <FormControl sx={{ minWidth: 150 }}>
+          <InputLabel id="Disease">Disease</InputLabel>
           <Select
-            labelId="specialization"
-            label="Specialization"
-            id="specialization"
-            name="specialization"
-            value={specialization}
-            onChange={(e) => setSpecialization(e.target.value)}
+            labelId="Disease"
+            label="Disease"
+            id="Disease"
+            name="Disease"
+            value={disease}
+            onChange={(e) => setDisease(e.target.value)}
             sx={{ marginBottom: "5px" }}
             onClick={() => setPage(0)}
           >
             <MenuItem id="all" value={0}>
               All
             </MenuItem>
-            {specializations.map((eachSpecialization) => (
+            {diseases.map((eachDisease) => (
               <MenuItem
-                id={eachSpecialization.name}
-                key={eachSpecialization.id}
-                value={eachSpecialization.id}
+                key={eachDisease.id}
+                id={eachDisease.name}
+                value={eachDisease.id}
               >
-                {eachSpecialization.name}
+                {eachDisease.name}
               </MenuItem>
             ))}
           </Select>
-        </FormControl>
-        <Link to="add" style={{ textDecoration: "none", color: "black" }}>
+        </FormControl> */}
+        <Link to="create" style={{ textDecoration: "none", color: "black" }}>
           <Button
             variant="contained"
             size="small"
@@ -325,15 +280,14 @@ export default function Doctors() {
               <Add />
             </ListItemIcon>
             <ListItemText sx={{ color: "white", paddingRight: "5px" }}>
-              Add Doctor
+              Add Appointment
             </ListItemText>
           </Button>
         </Link>
       </Grid2>
       {rows.length === 0 && (
-        <Alert severity="info">No doctors found for the selected filter</Alert>
+        <Alert severity="info">No Appointment found!</Alert>
       )}
-      {op && <Alert severity="success">{localStorage.getItem("op")}</Alert>}
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 500 }} aria-label="custom pagination table">
           <TableHead>
@@ -348,19 +302,19 @@ export default function Doctors() {
                   Name
                 </Typography>
               </TableCell>
+              {/* <TableCell align="center">
+                <Typography variant="h5" color="green">
+                  Email
+                </Typography>
+              </TableCell> */}
               <TableCell align="center">
                 <Typography variant="h5" color="green">
-                  Specialization
+                  Date
                 </Typography>
               </TableCell>
               <TableCell align="center">
                 <Typography variant="h5" color="green">
-                  City
-                </Typography>
-              </TableCell>
-              <TableCell align="center">
-                <Typography variant="h5" color="green">
-                  Hospital
+                  Time
                 </Typography>
               </TableCell>
               <TableCell align="center">
@@ -370,57 +324,79 @@ export default function Doctors() {
               </TableCell>
               <TableCell align="center">
                 <Typography variant="h5" color="green">
-                  Action
+                  Amount
+                </Typography>
+              </TableCell>
+              <TableCell align="center">
+                <Typography variant="h5" color="green">
+                  Payment Method
+                </Typography>
+              </TableCell>
+              <TableCell align="center">
+                <Typography variant="h5" color="green">
+                  Payment Status
                 </Typography>
               </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {rows.map((row) => (
-              <TableRow key={row.id}>
+              <TableRow key={row.name}>
                 <TableCell component="th" scope="row">
                   {row.id}
                 </TableCell>
-                <TableCell style={{ width: 160 }} component="th" scope="row">
+                <TableCell component="th" scope="row">
                   {row.name}
                 </TableCell>
-                <TableCell style={{ width: 160 }} align="center">
-                  {row.specialization}
-                </TableCell>
-                <TableCell style={{ width: 160 }} align="center">
-                  {row.city}
-                </TableCell>
-                <TableCell style={{ width: 160 }} align="center">
-                  {row.hospital}
-                </TableCell>
-                <TableCell style={{ width: 160 }} align="center">
-                  {row.status ? "Active" : "Inactive"}
+                {/* <TableCell style={{ width: 100 }} align="center">
+                  {row.email}
+                </TableCell> */}
+                <TableCell
+                  style={{ width: 160 }}
+                  align="center"
+                  sx={{ fontSize: "12.5px" }}
+                >
+                  {row.date}
                 </TableCell>
                 <TableCell
                   style={{ width: 160 }}
                   align="center"
-                  sx={{ display: "flex", justifyContent: "left", gap: "2rem" }}
+                  sx={{ fontSize: "12.5px" }}
                 >
-                  <Tooltip title="Edit">
-                    <IconButton
-                      onClick={() => editHandler(row.id)}
-                      sx={{ color: "lightslategray" }}
+                  {row.time}
+                </TableCell>
+                <TableCell
+                  style={{ width: 100 }}
+                  align="center"
+                  sx={{ fontSize: "13px" }}
+                >
+                  {row.status}
+                </TableCell>
+                <TableCell
+                  style={{ width: 130 }}
+                  align="center"
+                  sx={{ fontSize: "13px" }}
+                >
+                  {row.amount}
+                </TableCell>
+                <TableCell
+                  style={{ width: 100 }}
+                  align="center"
+                  sx={{ fontSize: "13px" }}
+                >
+                  {row.paymentMethod}
+                </TableCell>
+                <TableCell style={{ width: 100 }} align="center">
+                  {row.paymentStatus === "Pending" &&
+                  row.paymentMethod === "Card" ? (
+                    <Button
+                      size="small"
+                      onClick={() => paymentHandler(row)}
                     >
-                      <Edit />
-                    </IconButton>
-                  </Tooltip>
-                  {!row.status ? (
-                    <Tooltip title="Restore">
-                      <IconButton sx={{ color: "lightslategray" }}>
-                        <Restore onClick={() => restoreHandler(row.id)} />
-                      </IconButton>
-                    </Tooltip>
+                      Pay now
+                    </Button>
                   ) : (
-                    <Tooltip title="Delete">
-                      <IconButton sx={{ color: "red" }}>
-                        <Delete onClick={() => deleteHandler(row.id)} />
-                      </IconButton>
-                    </Tooltip>
+                    row.paymentStatus
                   )}
                 </TableCell>
               </TableRow>
@@ -430,7 +406,7 @@ export default function Doctors() {
             <TableRow>
               <TablePagination
                 rowsPerPageOptions={[5, 10, 25, { label: "All", value: -1 }]}
-                colSpan={5}
+                colSpan={6}
                 count={totalCount}
                 rowsPerPage={rowsPerPage}
                 page={page}

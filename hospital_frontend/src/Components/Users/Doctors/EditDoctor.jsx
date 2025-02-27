@@ -27,6 +27,7 @@ export default function EditDoctor() {
   const [name, setName] = useState("");
   const [specialization, setSpecialization] = useState("");
   const [city, setCity] = useState("");
+  const [fees, setFees] = useState("");
   const [hospital, setHospital] = useState("");
   const [hospitals, setHospitals] = useState([]);
   const [message, setMessage] = useState("");
@@ -62,6 +63,7 @@ export default function EditDoctor() {
         setSpecialization(result.doctor.specialization_id);
         setCity(result.doctor.city_id);
         setHospital(result.doctor.hospital_id);
+        setFees(result.doctor.fees);
       } else {
         console.log("Some error occured");
       }
@@ -147,6 +149,16 @@ export default function EditDoctor() {
           },
         }));
         break;
+      case "fees":
+        setFees(value);
+        setError((prevState) => ({
+          ...prevState,
+          feesError: {
+            state: false,
+            message: "",
+          },
+        }));
+        break;
       case "hospital":
         setHospital(value);
         setError((prevState) => ({
@@ -181,6 +193,10 @@ export default function EditDoctor() {
       state: false,
       message: "",
     },
+    feesError: {
+      state: false,
+      message: "",
+    },
   });
   function onBlurHandler(event) {
     const id = event.target.id || event.target.name;
@@ -193,6 +209,33 @@ export default function EditDoctor() {
             nameError: {
               state: true,
               message: "Invalid Name",
+            },
+          }));
+        }
+        break;
+      case "fees":
+        if (value.length === 0) {
+          setError((prevState) => ({
+            ...prevState,
+            feesError: {
+              state: true,
+              message: "Invalid Value",
+            },
+          }));
+        } else if (value > 1500) {
+          setError((prevState) => ({
+            ...prevState,
+            feesError: {
+              state: true,
+              message: "Fees must be less then 1500",
+            },
+          }));
+        } else if (value < 500) {
+          setError((prevState) => ({
+            ...prevState,
+            feesError: {
+              state: true,
+              message: "Fees must be atleast 500",
             },
           }));
         }
@@ -247,6 +290,7 @@ export default function EditDoctor() {
       specialization_id: specialization,
       city_id: city,
       hospital_id: hospital,
+      fees: Number(fees),
     };
     const response = await fetch(`${Conn}/doctors/update/${reqId.current}`, {
       method: "put",
@@ -367,6 +411,17 @@ export default function EditDoctor() {
               onBlur={onBlurHandler}
               error={error.nameError.state}
               helperText={error.nameError.message}
+              onChange={onChangeHandler}
+            />
+            <TextField
+              name="fees"
+              id="fees"
+              label="Enter fees of the Doctor"
+              type="number"
+              value={fees}
+              onBlur={onBlurHandler}
+              error={error.feesError.state}
+              helperText={error.feesError.message}
               onChange={onChangeHandler}
             />
             <FormControl error={error.specializationError.state}>

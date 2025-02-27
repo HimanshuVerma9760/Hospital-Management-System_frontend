@@ -26,6 +26,7 @@ export default function AddDoctor() {
   const [name, setName] = useState("");
   const [specialization, setSpecialization] = useState("");
   const [city, setCity] = useState("");
+  const [fees, setFees] = useState("");
   const [hospital, setHospital] = useState("");
   const [hospitals, setHospitals] = useState([]);
   const [message, setMessage] = useState("");
@@ -107,6 +108,16 @@ export default function AddDoctor() {
           },
         }));
         break;
+      case "fees":
+        setFees(value);
+        setError((prevState) => ({
+          ...prevState,
+          feesError: {
+            state: false,
+            message: "",
+          },
+        }));
+        break;
       case "hospital":
         setHospital(value);
         setError((prevState) => ({
@@ -138,6 +149,10 @@ export default function AddDoctor() {
       message: "",
     },
     specializationError: {
+      state: false,
+      message: "",
+    },
+    feesError: {
       state: false,
       message: "",
     },
@@ -193,7 +208,33 @@ export default function AddDoctor() {
           }));
         }
         break;
-
+      case "fees":
+        if (value.length === 0) {
+          setError((prevState) => ({
+            ...prevState,
+            feesError: {
+              state: true,
+              message: "Invalid Value",
+            },
+          }));
+        } else if (value > 1500) {
+          setError((prevState) => ({
+            ...prevState,
+            feesError: {
+              state: true,
+              message: "Fees must be less then 1500",
+            },
+          }));
+        } else if (value < 500) {
+          setError((prevState) => ({
+            ...prevState,
+            feesError: {
+              state: true,
+              message: "Fees must be atleast 500",
+            },
+          }));
+        }
+        break;
       default:
         break;
     }
@@ -206,6 +247,7 @@ export default function AddDoctor() {
       specialization_id: specialization,
       city_id: city,
       hospital_id: hospital,
+      fees: Number(fees),
     };
 
     const response = await fetch(`${Conn}/doctors/add`, {
@@ -225,8 +267,11 @@ export default function AddDoctor() {
         setSpecialization("");
         setCity("");
         setHospital("");
-      } else {
+        setFees("");
+      } else if(response.status===400){
         setMessage(result.message[0]);
+      }else{
+        setMessage(result.message);
       }
     }
   }
@@ -313,6 +358,17 @@ export default function AddDoctor() {
               onBlur={onBlurHandler}
               error={error.nameError.state}
               helperText={error.nameError.message}
+              onChange={onChangeHandler}
+            />
+            <TextField
+              name="fees"
+              id="fees"
+              label="Enter fees of the Doctor"
+              type="number"
+              value={fees}
+              onBlur={onBlurHandler}
+              error={error.feesError.state}
+              helperText={error.feesError.message}
               onChange={onChangeHandler}
             />
             <FormControl error={error.specializationError.state}>
@@ -408,7 +464,8 @@ export default function AddDoctor() {
                 error.nameError.state ||
                 error.specializationError.state ||
                 error.hospitalError.state ||
-                error.cityError.state
+                error.cityError.state ||
+                error.feesError.state
               }
             >
               Add

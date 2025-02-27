@@ -5,6 +5,8 @@ import {
   CircularProgress,
   CssBaseline,
   Grid2,
+  IconButton,
+  InputAdornment,
   Skeleton,
   TextField,
   Typography,
@@ -13,6 +15,7 @@ import { useEffect, useState } from "react";
 import { Form, useNavigate } from "react-router";
 import { motion } from "motion/react";
 import useAuth from "../util/useAuth";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 const Conn = import.meta.env.VITE_CONN_URI;
 
 export default function Login() {
@@ -23,6 +26,7 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
   const [responseError, setResponseError] = useState(false);
+  const [passwordIsVisible, setPasswordIsVisible] = useState(false);
 
   const [error, setError] = useState({
     emailError: { state: false, message: "" },
@@ -169,11 +173,9 @@ export default function Login() {
                 maxWidth: "30rem",
                 margin: "auto",
                 backgroundColor: "white",
-                // paddingTop: "3rem",
-                // paddingBottom: "5rem",
                 minHeight: "30rem",
                 borderRadius: "2rem",
-                boxShadow: "0px 1px 2px 0px",
+                boxShadow: "0px 1px 2px 0px cyan",
               }}
             >
               <Grid2 alignSelf="center">
@@ -212,13 +214,12 @@ export default function Login() {
                     backgroundColor: "white",
                     minWidth: "25rem",
                     borderRadius: "10px",
-                    // color: "black",
                   }}
                 />
                 <Typography variant=""></Typography>
                 <TextField
                   id="password"
-                  type="password"
+                  type={passwordIsVisible ? "text" : "password"}
                   name="password"
                   label="Enter password"
                   value={password}
@@ -235,6 +236,25 @@ export default function Login() {
                     backgroundColor: "white",
                     minWidth: "25rem",
                     borderRadius: "10px",
+                  }}
+                  slotProps={{
+                    input: {
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            onClick={() =>
+                              setPasswordIsVisible((prevState) => !prevState)
+                            }
+                          >
+                            {passwordIsVisible ? (
+                              <Visibility />
+                            ) : (
+                              <VisibilityOff />
+                            )}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    },
                   }}
                 />
                 <Button

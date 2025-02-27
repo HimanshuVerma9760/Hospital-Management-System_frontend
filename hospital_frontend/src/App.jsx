@@ -12,6 +12,11 @@ import AddDoctor from "./Components/Users/Doctors/AddDoctor";
 import Patients from "./Components/Users/Patients/Patients";
 import AddPatient from "./Components/Users/Patients/AddPatient";
 import EditDoctor from "./Components/Users/Doctors/EditDoctor";
+import CreateAppointments from "./Components/Users/Appointments/CreateAppointments";
+import Appointments from "./Components/Users/Appointments/Appointments";
+import Success from "./Components/Users/Appointments/Success";
+import Cancel from "./Components/Users/Appointments/Cancel";
+import CheckoutPage from "./Components/Users/Appointments/CheckoutPage";
 
 export default function App() {
   const theme = createTheme({
@@ -59,7 +64,23 @@ export default function App() {
           path: "patients/add",
           element: <AddPatient />,
         },
+        {
+          path: "appointments",
+          element: <Appointments />,
+        },
+        {
+          path: "appointments/create",
+          element: <CreateAppointments />,
+        },
       ],
+    },
+    {
+      path: "/payment/success",
+      element: <Success />,
+    },
+    {
+      path: "/cancel",
+      element: <Cancel />,
     },
   ]);
 

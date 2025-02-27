@@ -19,6 +19,7 @@ import {
 } from "@mui/material";
 import HomeIcon from "@mui/icons-material/Home";
 import {
+  Create,
   ListAltOutlined,
   LocalHospital,
   Logout,
@@ -117,14 +118,14 @@ export default function Welcome() {
           Main menu
         </Typography>
         <List sx={{ paddingLeft: "1rem", marginRight: "1rem" }}>
-          <Link to="/users" style={{ textDecoration: "none", color: "black" }}>
+          {/* <Link to="/users" style={{ textDecoration: "none", color: "black" }}>
             <ListItemButton>
               <ListItemIcon>
                 <HomeIcon />
               </ListItemIcon>
               <ListItemText primary="Home" />
             </ListItemButton>
-          </Link>
+          </Link> */}
           <Link to="doctors" style={{ textDecoration: "none", color: "black" }}>
             <ListItemButton>
               <ListItemIcon>
@@ -155,14 +156,23 @@ export default function Welcome() {
               <ListItemText primary="Patients" />
             </ListItemButton>
           </Link>
-          {/* <Link to='hospitals' style={{ textDecoration: "none", color: "black" }}> */}
+          <Link
+            to="appointments"
+            style={{ textDecoration: "none", color: "black" }}
+          >
+            <ListItemButton>
+              <ListItemIcon>
+                <Create />
+              </ListItemIcon>
+              <ListItemText primary="Appointments" />
+            </ListItemButton>
+          </Link>
           <ListItemButton onClick={logoutHandler}>
             <ListItemIcon>
               <Logout />
             </ListItemIcon>
             <ListItemText primary="Logout" />
           </ListItemButton>
-          {/* </Link> */}
         </List>
       </Drawer>
 
@@ -171,15 +181,13 @@ export default function Welcome() {
           <Typography variant="h6" fontWeight="bold">
             Hospital Management System
           </Typography>
-          <Link style={{ textDecoration: "none" }}>
-            <Avatar
-              sx={{ bgcolor: deepOrange[500] }}
-              alt="Remy Sharp"
-              src="/broken-image.jpg"
-            >
-              B
-            </Avatar>
-          </Link>
+          <Avatar
+            sx={{ bgcolor: deepOrange[500] }}
+            alt="Remy Sharp"
+            src="/broken-image.jpg"
+          >
+            B
+          </Avatar>
         </Grid2>
         <Toolbar />
         <Outlet />

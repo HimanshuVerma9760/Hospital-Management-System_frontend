@@ -316,8 +316,8 @@ export default function AddPatient() {
           borderRadius: "1rem",
         }}
       >
-        <Grid2 sx={{ marginBottom: "2rem", paddingTop: "3rem" }}>
-          <Typography variant="h4" align="center">
+        <Grid2 sx={{paddingTop:"1rem"}}>
+          <Typography variant="h5" sx={{fontSize:"1.5rem"}} align="center">
             Add Patient
           </Typography>
           <Typography
@@ -342,10 +342,11 @@ export default function AddPatient() {
               display: "flex",
               flexDirection: "column",
               justifyContent: "center",
-              gap: "1rem",
+              gap: "0.5rem",
               paddingLeft: "5rem",
               paddingRight: "5rem",
-              paddingBottom: "3rem",
+              paddingBottom: "1.5rem",
+              paddingTop: "1rem",
             }}
           >
             <TextField

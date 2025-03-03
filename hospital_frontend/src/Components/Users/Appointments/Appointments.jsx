@@ -34,6 +34,7 @@ import LastPageIcon from "@mui/icons-material/LastPage";
 import { Add } from "@mui/icons-material";
 import { Link } from "react-router";
 import CheckoutPage from "./CheckoutPage";
+import { indigo } from "@mui/material/colors";
 const Conn = import.meta.env.VITE_CONN_URI;
 
 export default function Appointments() {
@@ -272,16 +273,15 @@ export default function Appointments() {
             size="small"
             sx={{
               borderRadius: "6px",
-              backgroundColor: "green",
+              backgroundColor: indigo[300],
               marginBottom: "5px",
+              paddingTop: "8px",
+              paddingBottom: "8px",
+              paddingLeft: "10px",
+              paddingRight: "10px",
             }}
           >
-            <ListItemIcon sx={{ color: "white" }}>
-              <Add />
-            </ListItemIcon>
-            <ListItemText sx={{ color: "white", paddingRight: "5px" }}>
-              Add Appointment
-            </ListItemText>
+            Add Appointment
           </Button>
         </Link>
       </Grid2>
@@ -293,47 +293,79 @@ export default function Appointments() {
           <TableHead>
             <TableRow sx={{ marginBottom: "2rem" }}>
               <TableCell>
-                <Typography variant="h5" color="green">
+                <Typography
+                  variant="h6"
+                  sx={{ fontSize: "1rem" }}
+                  color="green"
+                >
                   Id
                 </Typography>
               </TableCell>
               <TableCell>
-                <Typography variant="h5" color="green">
+                <Typography
+                  variant="h6"
+                  sx={{ fontSize: "1rem" }}
+                  color="green"
+                >
                   Name
                 </Typography>
               </TableCell>
               {/* <TableCell align="center">
-                <Typography variant="h5" color="green">
+                <Typography  variant="h6" sx={{ fontSize: "1rem" }}  color="green">
                   Email
                 </Typography>
               </TableCell> */}
               <TableCell align="center">
-                <Typography variant="h5" color="green">
+                <Typography
+                  variant="h6"
+                  sx={{ fontSize: "1rem" }}
+                  color="green"
+                >
                   Date
                 </Typography>
               </TableCell>
               <TableCell align="center">
-                <Typography variant="h5" color="green">
+                <Typography
+                  variant="h6"
+                  sx={{ fontSize: "1rem" }}
+                  color="green"
+                >
                   Time
                 </Typography>
               </TableCell>
               <TableCell align="center">
-                <Typography variant="h5" color="green">
+                <Typography
+                  variant="h6"
+                  sx={{ fontSize: "1rem" }}
+                  color="green"
+                >
                   Status
                 </Typography>
               </TableCell>
               <TableCell align="center">
-                <Typography variant="h5" color="green">
+                <Typography
+                  variant="h6"
+                  sx={{ fontSize: "1rem" }}
+                  color="green"
+                >
                   Amount
                 </Typography>
               </TableCell>
               <TableCell align="center">
-                <Typography variant="h5" color="green">
+                <Typography
+                  variant="h6"
+                  sx={{ fontSize: "1rem" }}
+                  color="green"
+                >
                   Payment Method
                 </Typography>
               </TableCell>
               <TableCell align="center">
-                <Typography variant="h5" color="green">
+                <Typography
+                  variant="h6"
+                  sx={{ fontSize: "1rem" }}
+                  color="green"
+                >
                   Payment Status
                 </Typography>
               </TableCell>
@@ -342,24 +374,29 @@ export default function Appointments() {
           <TableBody>
             {rows.map((row) => (
               <TableRow key={row.name}>
-                <TableCell component="th" scope="row">
+                <TableCell component="th" style={{ width: 50 }} scope="row">
                   {row.id}
                 </TableCell>
-                <TableCell component="th" scope="row">
+                <TableCell
+                  component="th"
+                  style={{ width: 120 }}
+                  scope="row"
+                  sx={{ fontSize: "12.5px" }}
+                >
                   {row.name}
                 </TableCell>
                 {/* <TableCell style={{ width: 100 }} align="center">
                   {row.email}
                 </TableCell> */}
                 <TableCell
-                  style={{ width: 160 }}
+                  style={{ width: 140 }}
                   align="center"
                   sx={{ fontSize: "12.5px" }}
                 >
                   {row.date}
                 </TableCell>
                 <TableCell
-                  style={{ width: 160 }}
+                  style={{ width: 140 }}
                   align="center"
                   sx={{ fontSize: "12.5px" }}
                 >
@@ -380,19 +417,16 @@ export default function Appointments() {
                   {row.amount}
                 </TableCell>
                 <TableCell
-                  style={{ width: 100 }}
+                  style={{ width: 160 }}
                   align="center"
                   sx={{ fontSize: "13px" }}
                 >
                   {row.paymentMethod}
                 </TableCell>
-                <TableCell style={{ width: 100 }} align="center">
+                <TableCell style={{ width: 160 }} align="center">
                   {row.paymentStatus === "Pending" &&
                   row.paymentMethod === "Card" ? (
-                    <Button
-                      size="small"
-                      onClick={() => paymentHandler(row)}
-                    >
+                    <Button size="small" onClick={() => paymentHandler(row)}>
                       Pay now
                     </Button>
                   ) : (

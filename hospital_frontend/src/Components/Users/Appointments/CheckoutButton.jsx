@@ -1,4 +1,11 @@
-import { Button, CircularProgress } from "@mui/material";
+import { Forward } from "@mui/icons-material";
+import {
+  Button,
+  CircularProgress,
+  Grid2,
+  Icon,
+  Typography,
+} from "@mui/material";
 import { useState } from "react";
 const Conn = import.meta.env.VITE_CONN_URI;
 
@@ -14,7 +21,7 @@ const CheckoutButton = ({ order }) => {
         "Content-Type": "application/json",
       },
     });
-    
+
     const { url } = await response.json();
     window.location.href = url;
   };
@@ -26,7 +33,16 @@ const CheckoutButton = ({ order }) => {
       disabled={loading}
       sx={{ marginTop: "1rem" }}
     >
-      {loading ? <CircularProgress /> : "Book Appointment"}
+      {loading ? (
+        <CircularProgress />
+      ) : (
+        <Grid2 display="flex" gap="1rem">
+          <Typography>Proceed to payment</Typography>
+          <Icon sx={{ display: "flex", justifyContent: "center" }}>
+            <Forward />
+          </Icon>
+        </Grid2>
+      )}
     </Button>
   );
 };

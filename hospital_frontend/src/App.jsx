@@ -1,7 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 import { RouterProvider } from "react-router";
 import { createTheme, CssBaseline } from "@mui/material";
-import { cyan } from "@mui/material/colors";
+import { cyan, grey} from "@mui/material/colors";
 import { ThemeProvider } from "@emotion/react";
 import Welcome from "./Components/Users/Welcome";
 import Login from "./Components/Login";
@@ -17,12 +17,13 @@ import Appointments from "./Components/Users/Appointments/Appointments";
 import Success from "./Components/Users/Appointments/Success";
 import Cancel from "./Components/Users/Appointments/Cancel";
 import CheckoutPage from "./Components/Users/Appointments/CheckoutPage";
+import EditHospital from "./Components/Users/Hospitals/EditHospital";
 
 export default function App() {
   const theme = createTheme({
     palette: {
       background: {
-        default: cyan[50],
+        default: grey[50],
       },
     },
   });
@@ -55,6 +56,10 @@ export default function App() {
         {
           path: "hospitals/add",
           element: <AddHospital />,
+        },
+        {
+          path: "hospitals/edit",
+          element: <EditHospital />,
         },
         {
           path: "patients",

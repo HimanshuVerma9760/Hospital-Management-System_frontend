@@ -1,19 +1,32 @@
 import React from "react";
 import Portal from "./Portal";
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Button, Grid2, Typography } from "@mui/material";
 import { Link } from "react-router-dom";
 const Conn = import.meta.env.VITE_CONN_URI;
 
 const ModalContent = ({ isOpen, onClose, message, btn, type }) => {
   if (!isOpen) return null;
 
-  async function deletHandler() {
-    const response = await fetch(
-      `${Conn}/doctors/${message.id}/soft/${localStorage.getItem("token")}`,
-      {
-        method: "delete",
-      }
-    );
+  async function deleteHandler() {
+    const response = await fetch(`${Conn}/doctors/soft/${message.id}}`, {
+      method: "delete",
+      headers: {
+        authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+    if (response) {
+      const result = await response.json();
+      console.log(result.message);
+    }
+    onClose();
+  }
+  async function deleteHospitalHandler() {
+    const response = await fetch(`${Conn}/hospitals/delete/soft/${message.id}}`, {
+      method: "delete",
+      headers: {
+        authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
     if (response) {
       const result = await response.json();
       console.log(result.message);
@@ -21,9 +34,23 @@ const ModalContent = ({ isOpen, onClose, message, btn, type }) => {
     onClose();
   }
   async function restoreHandler() {
-    const response = await fetch(
-      `${Conn}/doctors/restore/${message.id}/${localStorage.getItem("token")}`
-    );
+    const response = await fetch(`${Conn}/doctors/restore/${message.id}`, {
+      headers: {
+        authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+    if (response) {
+      const result = await response.json();
+      console.log(result.message);
+    }
+    onClose();
+  }
+  async function restoreHospitalHandler() {
+    const response = await fetch(`${Conn}/hospitals/restore/${message.id}`, {
+      headers: {
+        authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
     if (response) {
       const result = await response.json();
       console.log(result.message);
@@ -34,10 +61,17 @@ const ModalContent = ({ isOpen, onClose, message, btn, type }) => {
   function clickHandler() {
     switch (type) {
       case "delete":
-        deletHandler();
+        deleteHandler();
+        break;
+      case "deleteHospital":
+        deleteHospitalHandler();
         break;
       case "restore":
         restoreHandler();
+        break;
+      case "restoreHospital":
+        restoreHospitalHandler();
+        break;
     }
   }
   return (
@@ -63,9 +97,10 @@ const ModalContent = ({ isOpen, onClose, message, btn, type }) => {
             </Link>
           </Button>
         ) : (
-          <>
-            <Button onClick={clickHandler}>{btn}</Button>
-          </>
+          <Grid2 display="flex" gap="1rem" justifyContent="center" sx={{padding:"2rem"}}>
+            <Button variant="contained" onClick={clickHandler}>{btn}</Button>
+            <Button variant="outlined" onClick={() => onClose()}>Cancel</Button>
+          </Grid2>
         )}
       </Box>
     </Portal>

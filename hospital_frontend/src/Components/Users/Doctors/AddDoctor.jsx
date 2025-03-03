@@ -314,12 +314,12 @@ export default function AddDoctor() {
           backgroundColor: "white",
           maxWidth: "60%",
           margin: "auto",
-          boxShadow: "0px 1px 1px 0px",
+          boxShadow: "0px 1px 2px 0px cyan",
           borderRadius: "1rem",
         }}
       >
-        <Grid2 sx={{ marginBottom: "2rem", paddingTop: "3rem" }}>
-          <Typography variant="h4" align="center">
+        <Grid2 sx={{paddingTop:"1rem"}}>
+          <Typography variant="h5" sx={{fontSize:"1.5rem"}} align="center">
             Add Doctor
           </Typography>
           <Typography
@@ -340,14 +340,16 @@ export default function AddDoctor() {
         </Grid2>
         <Form onSubmit={onSubmitHandler}>
           <Grid2
+          container
             sx={{
               display: "flex",
               flexDirection: "column",
               justifyContent: "center",
-              gap: "1rem",
+              gap: "0.5rem",
               paddingLeft: "5rem",
               paddingRight: "5rem",
-              paddingBottom: "3rem",
+              paddingBottom: "1.5rem",
+              paddingTop: "1rem",
             }}
           >
             <TextField
@@ -359,6 +361,7 @@ export default function AddDoctor() {
               error={error.nameError.state}
               helperText={error.nameError.message}
               onChange={onChangeHandler}
+              size="medium"
             />
             <TextField
               name="fees"
@@ -370,6 +373,7 @@ export default function AddDoctor() {
               error={error.feesError.state}
               helperText={error.feesError.message}
               onChange={onChangeHandler}
+              size="medium"
             />
             <FormControl error={error.specializationError.state}>
               <InputLabel id="specializationLabel">Specialization</InputLabel>
@@ -381,6 +385,7 @@ export default function AddDoctor() {
                 value={specialization}
                 onChange={onChangeHandler}
                 onBlur={onBlurHandler}
+                size="medium"
               >
                 {isLoading ? (
                   <Grid2 display="flex" justifyContent="center">
@@ -412,6 +417,7 @@ export default function AddDoctor() {
                 value={city}
                 onChange={onChangeHandler}
                 onBlur={onBlurHandler}
+                size="medium"
               >
                 {isLoading ? (
                   <Grid2 display="flex" justifyContent="center">
@@ -441,6 +447,7 @@ export default function AddDoctor() {
                 value={hospital}
                 onChange={onChangeHandler}
                 onBlur={onBlurHandler}
+                size="medium"
               >
                 {isLoading ? (
                   <Grid2 display="flex" justifyContent="center">

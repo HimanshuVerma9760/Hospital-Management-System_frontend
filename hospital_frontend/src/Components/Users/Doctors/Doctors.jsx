@@ -5,6 +5,7 @@ import {
   Button,
   FormControl,
   Grid2,
+  Icon,
   InputLabel,
   ListItemButton,
   ListItemIcon,
@@ -33,9 +34,17 @@ import FirstPageIcon from "@mui/icons-material/FirstPage";
 import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import LastPageIcon from "@mui/icons-material/LastPage";
-import { Add, Delete, Edit, Restore } from "@mui/icons-material";
+import {
+  Add,
+  Delete,
+  Edit,
+  Restore,
+  ToggleOff,
+  ToggleOn,
+} from "@mui/icons-material";
 import { Link, useNavigate } from "react-router";
 import ModalContent from "../../Modal/ModalContent";
+import { deepOrange, indigo } from "@mui/material/colors";
 const Conn = import.meta.env.VITE_CONN_URI;
 
 export default function Doctors() {
@@ -278,27 +287,27 @@ export default function Doctors() {
       />
     );
   }
-  setTimeout(() => {
-    localStorage.removeItem("op");
-    setOp(false);
-  }, 2000);
+  if (localStorage.getItem("op")) {
+    setTimeout(() => {
+      localStorage.removeItem("op");
+      setOp(false);
+    }, 2000);
+  }
   return (
     <>
       <Grid2 display="flex" justifyContent="end" gap="1rem" alignItems="center">
         <FormControl sx={{ minWidth: 150 }}>
-          <InputLabel id="specialization">Specialization</InputLabel>
           <Select
-            labelId="specialization"
-            label="Specialization"
             id="specialization"
             name="specialization"
             value={specialization}
             onChange={(e) => setSpecialization(e.target.value)}
-            sx={{ marginBottom: "5px" }}
+            sx={{ marginBottom: "5px", width: "13rem" }}
             onClick={() => setPage(0)}
+            size="small"
           >
             <MenuItem id="all" value={0}>
-              All
+              Select Specialization
             </MenuItem>
             {specializations.map((eachSpecialization) => (
               <MenuItem
@@ -317,16 +326,15 @@ export default function Doctors() {
             size="small"
             sx={{
               borderRadius: "6px",
-              backgroundColor: "green",
+              backgroundColor: indigo[300],
               marginBottom: "5px",
+              paddingTop: "8px",
+              paddingBottom: "8px",
+              paddingLeft: "10px",
+              paddingRight: "10px",
             }}
           >
-            <ListItemIcon sx={{ color: "white" }}>
-              <Add />
-            </ListItemIcon>
-            <ListItemText sx={{ color: "white", paddingRight: "5px" }}>
-              Add Doctor
-            </ListItemText>
+            Add Doctor
           </Button>
         </Link>
       </Grid2>
@@ -339,37 +347,65 @@ export default function Doctors() {
           <TableHead>
             <TableRow sx={{ marginBottom: "2rem" }}>
               <TableCell>
-                <Typography variant="h5" color="green">
+                <Typography
+                  variant="h6"
+                  color="green"
+                  sx={{ fontSize: "1.2rem" }}
+                >
                   Id
                 </Typography>
               </TableCell>
               <TableCell>
-                <Typography variant="h5" color="green">
+                <Typography
+                  variant="h6"
+                  color="green"
+                  sx={{ fontSize: "1.2rem" }}
+                >
                   Name
                 </Typography>
               </TableCell>
               <TableCell align="center">
-                <Typography variant="h5" color="green">
+                <Typography
+                  variant="h6"
+                  color="green"
+                  sx={{ fontSize: "1.2rem" }}
+                >
                   Specialization
                 </Typography>
               </TableCell>
               <TableCell align="center">
-                <Typography variant="h5" color="green">
+                <Typography
+                  variant="h6"
+                  color="green"
+                  sx={{ fontSize: "1.2rem" }}
+                >
                   City
                 </Typography>
               </TableCell>
               <TableCell align="center">
-                <Typography variant="h5" color="green">
+                <Typography
+                  variant="h6"
+                  color="green"
+                  sx={{ fontSize: "1.2rem" }}
+                >
                   Hospital
                 </Typography>
               </TableCell>
               <TableCell align="center">
-                <Typography variant="h5" color="green">
+                <Typography
+                  variant="h6"
+                  color="green"
+                  sx={{ fontSize: "1.2rem" }}
+                >
                   Status
                 </Typography>
               </TableCell>
               <TableCell align="center">
-                <Typography variant="h5" color="green">
+                <Typography
+                  variant="h6"
+                  color="green"
+                  sx={{ fontSize: "1.2rem" }}
+                >
                   Action
                 </Typography>
               </TableCell>
@@ -381,7 +417,7 @@ export default function Doctors() {
                 <TableCell component="th" scope="row">
                   {row.id}
                 </TableCell>
-                <TableCell style={{ width: 160 }} component="th" scope="row">
+                <TableCell style={{ width: 200 }} component="th" scope="row">
                   {row.name}
                 </TableCell>
                 <TableCell style={{ width: 160 }} align="center">
@@ -394,7 +430,23 @@ export default function Doctors() {
                   {row.hospital}
                 </TableCell>
                 <TableCell style={{ width: 160 }} align="center">
-                  {row.status ? "Active" : "Inactive"}
+                  {row.status ? (
+                    <Tooltip title="active">
+                      <Icon
+                        sx={{ height: "2rem", width: "2rem", color: "green" }}
+                      >
+                        <ToggleOn />
+                      </Icon>
+                    </Tooltip>
+                  ) : (
+                    <Tooltip title="inactive">
+                      <Icon
+                        sx={{ height: "2rem", width: "2rem", color: "red" }}
+                      >
+                        <ToggleOff />
+                      </Icon>
+                    </Tooltip>
+                  )}
                 </TableCell>
                 <TableCell
                   style={{ width: 160 }}

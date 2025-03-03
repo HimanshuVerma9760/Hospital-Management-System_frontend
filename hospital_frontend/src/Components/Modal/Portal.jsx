@@ -39,7 +39,7 @@ const styles = {
     padding: "20px",
     borderRadius: "10px",
     width: "25rem",
-    height: "10rem",
+    height: "13rem",
     textAlign: "center",
   },
   closeButton: {

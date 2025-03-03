@@ -4,11 +4,14 @@ import {
   Alert,
   Button,
   Grid2,
+  Icon,
+  ListItem,
   ListItemButton,
   ListItemIcon,
   ListItemText,
   Skeleton,
   TableHead,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import * as React from "react";
@@ -28,15 +31,48 @@ import FirstPageIcon from "@mui/icons-material/FirstPage";
 import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import LastPageIcon from "@mui/icons-material/LastPage";
-import { Add } from "@mui/icons-material";
-import { Link } from "react-router";
+import {
+  Add,
+  Delete,
+  Edit,
+  Restore,
+  ToggleOff,
+  ToggleOn,
+} from "@mui/icons-material";
+import { Link, useNavigate } from "react-router";
+import { indigo } from "@mui/material/colors";
+import ModalContent from "../../Modal/ModalContent";
 const Conn = import.meta.env.VITE_CONN_URI;
 
 export default function Hospitals() {
   const [isVerified, setIsVerified] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [fetchedHospitals, setFetchedHospitals] = useState([]);
+  // const [message, setMessage] = useState("");
+  const [op, setOp] = useState(false);
+  const [showPrompt, setShowPrompt] = useState({
+    state: false,
+    type: "",
+    message: {
+      message: "",
+      caption: "",
+    },
+  });
+  const reqId = React.useRef();
 
+  useEffect(() => {
+    if (localStorage.getItem("op")) {
+      setOp(true);
+    }
+  }, [op]);
+
+  // useEffect(() => {
+  //   if (message.length > 0) {
+  //     setTimeout(() => {
+  //       setMessage("");
+  //     }, 2000);
+  //   }
+  // }, [message]);
   function TablePaginationActions(props) {
     const theme = useTheme();
     const { count, page, rowsPerPage, onPageChange } = props;
@@ -105,14 +141,15 @@ export default function Hospitals() {
     rowsPerPage: PropTypes.number.isRequired,
   };
 
-  function createData(id, name, location, city, Doctors) {
-    return { id, name, location, city, Doctors };
+  function createData(id, name, status, location, city, Doctors) {
+    return { id, name, status, location, city, Doctors };
   }
 
   const rows = fetchedHospitals.map((eachHospital) =>
     createData(
       eachHospital.id,
       eachHospital.name,
+      eachHospital.status,
       eachHospital.location,
       eachHospital.city.name,
       eachHospital.doctor.length
@@ -167,7 +204,51 @@ export default function Hospitals() {
       setIsLoading(false);
     }
     checkAuth();
-  }, [page, rowsPerPage]);
+  }, [page, rowsPerPage, showPrompt.state]);
+  function onClose() {
+    setShowPrompt((prevState) => ({
+      ...prevState,
+      state: false,
+      message: {
+        message: "",
+        caption: "",
+      },
+    }));
+  }
+  const navigate = useNavigate();
+  function editHandler(id) {
+    localStorage.setItem("id", id);
+    navigate("edit");
+  }
+
+  function deleteHandler(id) {
+    reqId.current = id;
+    setShowPrompt((prevState) => ({
+      ...prevState,
+      state: true,
+      type: "deleteHospital",
+      message: {
+        message: "Delete Hospital",
+        caption: "This will wark the selected hospital as inactive",
+      },
+    }));
+  }
+  function restoreHandler(id) {
+    reqId.current = id;
+    setShowPrompt((prevState) => ({
+      ...prevState,
+      type: "restoreHospital",
+      state: true,
+      message: {
+        message: "Restore Hospital",
+        caption: "This will mark the hospital active again",
+      },
+    }));
+  }
+  function editHospitalHandler(id) {
+    localStorage.setItem("id", id);
+    navigate("edit");
+  }
 
   if (isLoading) {
     return (
@@ -184,8 +265,27 @@ export default function Hospitals() {
         <Link to="/">Login</Link>
       </Alert>
     );
+  } else if (showPrompt.state) {
+    return (
+      <ModalContent
+        btn="Are you sure"
+        isOpen={showPrompt.state}
+        onClose={onClose}
+        message={{
+          message: showPrompt.message.message,
+          caption: showPrompt.message.caption,
+          id: reqId.current,
+        }}
+        type={showPrompt.type}
+      />
+    );
   }
-
+  if (localStorage.getItem("op")) {
+    setTimeout(() => {
+      localStorage.removeItem("op");
+      setOp(false);
+    }, 2000);
+  }
   return (
     <>
       <Grid2 display="flex" justifyContent="end">
@@ -195,46 +295,85 @@ export default function Hospitals() {
             size="small"
             sx={{
               borderRadius: "6px",
-              backgroundColor: "green",
+              backgroundColor: indigo[300],
               marginBottom: "5px",
+              paddingTop: "8px",
+              paddingBottom: "8px",
+              paddingLeft: "10px",
+              paddingRight: "10px",
             }}
           >
-            <ListItemIcon sx={{ color: "white" }}>
-              <Add />
-            </ListItemIcon>
-            <ListItemText sx={{ color: "white", paddingRight: "5px" }}>
-              Add Hospital
-            </ListItemText>
+            Add Hospital
           </Button>
         </Link>
       </Grid2>
+      {op && <Alert severity="success">{localStorage.getItem("op")}</Alert>}
+      {/* {message && <Alert severity="success">{message}</Alert>} */}
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 500 }} aria-label="custom pagination table">
           <TableHead>
             <TableRow sx={{ marginBottom: "2rem" }}>
               <TableCell>
-                <Typography variant="h5" color="green">
+                <Typography
+                  variant="h6"
+                  color="green"
+                  sx={{ fontSize: "1.2rem" }}
+                >
                   Id
                 </Typography>
               </TableCell>
               <TableCell>
-                <Typography variant="h5" color="green">
+                <Typography
+                  variant="h6"
+                  color="green"
+                  sx={{ fontSize: "1.2rem" }}
+                >
                   Name
                 </Typography>
               </TableCell>
               <TableCell align="center">
-                <Typography variant="h5" color="green">
+                <Typography
+                  variant="h6"
+                  color="green"
+                  sx={{ fontSize: "1.2rem" }}
+                >
                   Location
                 </Typography>
               </TableCell>
               <TableCell align="center">
-                <Typography variant="h5" color="green">
+                <Typography
+                  variant="h6"
+                  color="green"
+                  sx={{ fontSize: "1.2rem" }}
+                >
                   City
                 </Typography>
               </TableCell>
               <TableCell align="center">
-                <Typography variant="h5" color="green">
-                  Doctors
+                <Typography
+                  variant="h6"
+                  color="green"
+                  sx={{ fontSize: "1.2rem" }}
+                >
+                  Doctors (#)
+                </Typography>
+              </TableCell>
+              <TableCell align="center">
+                <Typography
+                  variant="h6"
+                  color="green"
+                  sx={{ fontSize: "1.2rem" }}
+                >
+                  Status
+                </Typography>
+              </TableCell>
+              <TableCell align="center">
+                <Typography
+                  variant="h6"
+                  color="green"
+                  sx={{ fontSize: "1.2rem" }}
+                >
+                  Actions
                 </Typography>
               </TableCell>
             </TableRow>
@@ -242,13 +381,13 @@ export default function Hospitals() {
           <TableBody>
             {rows.map((row) => (
               <TableRow key={row.name}>
-                <TableCell style={{ width: 80 }} component="th" scope="row">
+                <TableCell style={{ width: 100 }} component="th" scope="row">
                   {row.id}
                 </TableCell>
                 <TableCell style={{ width: 160 }} component="th" scope="row">
                   {row.name}
                 </TableCell>
-                <TableCell style={{ width: 160 }} align="center">
+                <TableCell style={{ width: 100 }} align="center">
                   {row.location}
                 </TableCell>
                 <TableCell style={{ width: 160 }} align="center">
@@ -257,6 +396,49 @@ export default function Hospitals() {
                 <TableCell style={{ width: 160 }} align="center">
                   {row.Doctors}
                 </TableCell>
+                <TableCell style={{ width: 160 }} align="center">
+                  {row.status ? (
+                    <Tooltip title="active">
+                      <Icon
+                        sx={{ width: "3rem", height: "2rem", color: "green" }}
+                      >
+                        <ToggleOn />
+                      </Icon>
+                    </Tooltip>
+                  ) : (
+                    <Tooltip title="inactive">
+                      <Icon
+                        sx={{ width: "3rem", height: "2rem", color: "red" }}
+                      >
+                        <ToggleOff />
+                      </Icon>
+                    </Tooltip>
+                  )}
+                </TableCell>
+                <TableCell style={{ width: 200 }} align="center">
+                  <ListItem
+                    sx={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <Tooltip title="edit">
+                      <IconButton onClick={() => editHospitalHandler(row.id)}>
+                        <Edit />
+                      </IconButton>
+                    </Tooltip>
+                    {row.status ? (
+                      <Tooltip title="delete">
+                      <IconButton onClick={() => deleteHandler(row.id)} sx={{color:"red"}}>
+                        <Delete />
+                      </IconButton>
+                      </Tooltip>
+                    ) : (
+                      <Tooltip title="restore">
+                      <IconButton onClick={() => restoreHandler(row.id)}>
+                        <Restore />
+                      </IconButton>
+                      </Tooltip>
+                    )}
+                  </ListItem>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -264,7 +446,7 @@ export default function Hospitals() {
             <TableRow>
               <TablePagination
                 rowsPerPageOptions={[5, 10, 25, { label: "All", value: -1 }]}
-                colSpan={4}
+                colSpan={6}
                 count={totalCount}
                 rowsPerPage={rowsPerPage}
                 page={page}

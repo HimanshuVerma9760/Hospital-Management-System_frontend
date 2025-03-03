@@ -33,6 +33,7 @@ import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import LastPageIcon from "@mui/icons-material/LastPage";
 import { Add } from "@mui/icons-material";
 import { Link } from "react-router";
+import { indigo } from "@mui/material/colors";
 const Conn = import.meta.env.VITE_CONN_URI;
 
 export default function Patients() {
@@ -186,19 +187,17 @@ export default function Patients() {
     <>
       <Grid2 display="flex" justifyContent="end" gap="1rem" alignItems="center">
         <FormControl sx={{ minWidth: 150 }}>
-          <InputLabel id="Disease">Disease</InputLabel>
           <Select
-            labelId="Disease"
-            label="Disease"
             id="Disease"
             name="Disease"
             value={disease}
             onChange={(e) => setDisease(e.target.value)}
-            sx={{ marginBottom: "5px" }}
+            sx={{ marginBottom: "5px", width: "10rem" }}
             onClick={() => setPage(0)}
+            size="small"
           >
             <MenuItem id="all" value={0}>
-              All
+              Select Disease
             </MenuItem>
             {diseases.map((eachDisease) => (
               <MenuItem
@@ -217,16 +216,15 @@ export default function Patients() {
             size="small"
             sx={{
               borderRadius: "6px",
-              backgroundColor: "green",
+              backgroundColor: indigo[300],
               marginBottom: "5px",
+              paddingTop: "8px",
+              paddingBottom: "8px",
+              paddingLeft: "10px",
+              paddingRight: "10px",
             }}
           >
-            <ListItemIcon sx={{ color: "white" }}>
-              <Add />
-            </ListItemIcon>
-            <ListItemText sx={{ color: "white", paddingRight: "5px" }}>
-              Add Patient
-            </ListItemText>
+            Add Patient
           </Button>
         </Link>
       </Grid2>
@@ -238,32 +236,56 @@ export default function Patients() {
           <TableHead>
             <TableRow sx={{ marginBottom: "2rem" }}>
               <TableCell>
-                <Typography variant="h5" color="green">
+                <Typography
+                  variant="h6"
+                  sx={{ fontSize: "1.2rem" }}
+                  color="green"
+                >
                   Id
                 </Typography>
               </TableCell>
               <TableCell>
-                <Typography variant="h5" color="green">
+                <Typography
+                  variant="h6"
+                  sx={{ fontSize: "1.2rem" }}
+                  color="green"
+                >
                   Name
                 </Typography>
               </TableCell>
               <TableCell align="center">
-                <Typography variant="h5" color="green">
+                <Typography
+                  variant="h6"
+                  sx={{ fontSize: "1.2rem" }}
+                  color="green"
+                >
                   City
                 </Typography>
               </TableCell>
               <TableCell align="center">
-                <Typography variant="h5" color="green">
+                <Typography
+                  variant="h6"
+                  sx={{ fontSize: "1.2rem" }}
+                  color="green"
+                >
                   Hospital
                 </Typography>
               </TableCell>
               <TableCell align="center">
-                <Typography variant="h5" color="green">
+                <Typography
+                  variant="h6"
+                  sx={{ fontSize: "1.2rem" }}
+                  color="green"
+                >
                   Disease
                 </Typography>
               </TableCell>
               <TableCell align="center">
-                <Typography variant="h5" color="green">
+                <Typography
+                  variant="h6"
+                  sx={{ fontSize: "1.2rem" }}
+                  color="green"
+                >
                   Doctor
                 </Typography>
               </TableCell>
@@ -272,10 +294,10 @@ export default function Patients() {
           <TableBody>
             {rows.map((row) => (
               <TableRow key={row.name}>
-                <TableCell component="th" scope="row">
+                <TableCell component="th" style={{ width: 160 }} scope="row">
                   {row.id}
                 </TableCell>
-                <TableCell component="th" scope="row">
+                <TableCell component="th" style={{ width: 160 }} scope="row">
                   {row.name}
                 </TableCell>
                 <TableCell style={{ width: 160 }} align="center">

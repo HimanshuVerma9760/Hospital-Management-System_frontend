@@ -16,6 +16,7 @@ import {
   Typography,
   Button,
   Alert,
+  ImageListItem,
 } from "@mui/material";
 import HomeIcon from "@mui/icons-material/Home";
 import {
@@ -27,13 +28,14 @@ import {
 } from "@mui/icons-material";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import useAuth from "../../util/useAuth";
-import { deepOrange } from "@mui/material/colors";
+import { deepOrange, indigo } from "@mui/material/colors";
 
 const drawerWidth = 240;
 
 export default function Welcome() {
   const [isVerified, setIsVerified] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const nav = useLocation();
   const navigate = useNavigate();
   useEffect(() => {
     async function checkAuth() {
@@ -105,10 +107,14 @@ export default function Welcome() {
           },
         }}
       >
-        {/* <Typography variant="h6" fontWeight="bold" marginBottom="10px" align="center">
-            HashStudioz
-        </Typography> */}
-        <Toolbar />
+        <ImageListItem sx={{ paddingBottom: "1.5rem" }}>
+          <img
+            style={{ height: "4.5rem", width: "6rem", margin: "auto" }}
+            loading="lazy"
+            src="/Hospitals.png"
+            alt="hospital"
+          />
+        </ImageListItem>
         <Typography
           variant="p"
           fontWeight="bold"
@@ -118,16 +124,14 @@ export default function Welcome() {
           Main menu
         </Typography>
         <List sx={{ paddingLeft: "1rem", marginRight: "1rem" }}>
-          {/* <Link to="/users" style={{ textDecoration: "none", color: "black" }}>
-            <ListItemButton>
-              <ListItemIcon>
-                <HomeIcon />
-              </ListItemIcon>
-              <ListItemText primary="Home" />
-            </ListItemButton>
-          </Link> */}
           <Link to="doctors" style={{ textDecoration: "none", color: "black" }}>
-            <ListItemButton>
+            <ListItemButton
+              sx={
+                nav.pathname.split("/")[2] === "doctors" && {
+                  backgroundColor: "whitesmoke",
+                }
+              }
+            >
               <ListItemIcon>
                 <ListAltOutlined />
               </ListItemIcon>
@@ -138,7 +142,13 @@ export default function Welcome() {
             to="hospitals"
             style={{ textDecoration: "none", color: "black" }}
           >
-            <ListItemButton>
+            <ListItemButton
+              sx={
+                nav.pathname.split("/")[2] === "hospitals" && {
+                  backgroundColor: "whitesmoke",
+                }
+              }
+            >
               <ListItemIcon>
                 <LocalHospital />
               </ListItemIcon>
@@ -149,7 +159,13 @@ export default function Welcome() {
             to="patients"
             style={{ textDecoration: "none", color: "black" }}
           >
-            <ListItemButton>
+            <ListItemButton
+              sx={
+                nav.pathname.split("/")[2] === "patients" && {
+                  backgroundColor: "whitesmoke",
+                }
+              }
+            >
               <ListItemIcon>
                 <Person />
               </ListItemIcon>
@@ -160,7 +176,13 @@ export default function Welcome() {
             to="appointments"
             style={{ textDecoration: "none", color: "black" }}
           >
-            <ListItemButton>
+            <ListItemButton
+              sx={
+                nav.pathname.split("/")[2] === "appointments" && {
+                  backgroundColor: "whitesmoke",
+                }
+              }
+            >
               <ListItemIcon>
                 <Create />
               </ListItemIcon>
@@ -175,10 +197,22 @@ export default function Welcome() {
           </ListItemButton>
         </List>
       </Drawer>
-
-      <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
-        <Grid2 display="flex" justifyContent="space-between">
-          <Typography variant="h6" fontWeight="bold">
+      <Box component="main" sx={{ flexGrow: 1 }}>
+        <Grid2
+          display="flex"
+          justifyContent="space-between"
+          sx={{
+            backgroundColor: indigo[300],
+            color: "white",
+            p: 2,
+            // borderRadius: "2.5rem",
+          }}
+        >
+          <Typography
+            variant="h6"
+            fontWeight="bold"
+            sx={{ alignSelf: "center" }}
+          >
             Hospital Management System
           </Typography>
           <Avatar
@@ -189,8 +223,10 @@ export default function Welcome() {
             B
           </Avatar>
         </Grid2>
-        <Toolbar />
-        <Outlet />
+        <Box sx={{ p: 3, marginTop: "0.5rem" }}>
+          {/* <Toolbar /> */}
+          <Outlet />
+        </Box>
       </Box>
     </Box>
   );

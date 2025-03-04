@@ -14,6 +14,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { Form, useNavigate } from "react-router";
 import CheckoutPage from "./CheckoutPage";
+import ModalContent from "../../Modal/ModalContent";
 const Conn = import.meta.env.VITE_CONN_URI;
 
 export default function CreateAppointments() {
@@ -33,6 +34,14 @@ export default function CreateAppointments() {
   const [isLoading, setIsLoading] = useState(true);
   const [isDisabled, setIsDisabled] = useState(true);
   const [isCardMode, setIsCardMode] = useState(false);
+  const [showPrompt, setShowPrompt] = useState({
+    state: false,
+    type: "",
+    message: {
+      message: "",
+      caption: "",
+    },
+  });
   //   const navigate = useNavigate();
   const [error, setError] = useState({
     nameError: {
@@ -68,6 +77,36 @@ export default function CreateAppointments() {
       message: "",
     },
   });
+  useEffect(() => {
+    if (localStorage.getItem("cop") && !localStorage.getItem("as")) {
+      setShowPrompt({
+        state: true,
+        message: {
+          message: "Appointment Cancelled",
+          caption: "Your appointment is cancelled due to payment failure",
+        },
+      });
+    } else if (localStorage.getItem("cop") && localStorage.getItem("as")) {
+      setShowPrompt({
+        state: true,
+        message: {
+          message: "Payment Successfull",
+          caption: "Your appointment is Successfully scheduled",
+        },
+      });
+    }
+  }, []);
+  function onCloseHandler() {
+    setShowPrompt((prevState) => ({
+      ...prevState,
+      state: false,
+      message: {
+        message: "",
+        caption: "",
+      },
+    }));
+    localStorage.removeItem("cop");
+  }
   function isValidEmail(email) {
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     return emailRegex.test(email);
@@ -190,7 +229,6 @@ export default function CreateAppointments() {
     const response = await fetch(`${Conn}/diseases`);
     if (response.ok) {
       const result = await response.json();
-      console.log(result);
       setDiseases(result.result);
       setIsLoading(false);
     } else {
@@ -251,7 +289,6 @@ export default function CreateAppointments() {
           setIsCardMode(true);
           order.current = result.order;
           appointment.current = result.appointment;
-          //   navigate("checkout");
         } else {
           setName("");
           setDisease("");
@@ -365,6 +402,20 @@ export default function CreateAppointments() {
   if (isCardMode) {
     return (
       <CheckoutPage order={order.current} appointment={appointment.current} />
+    );
+  }
+  if (showPrompt.state) {
+    return (
+      <ModalContent
+        btn={{ text: "Go to appointments", loc: "/users/appointments" }}
+        isOpen={showPrompt.state}
+        onClose={onCloseHandler}
+        message={{
+          message: showPrompt.message.message,
+          caption: showPrompt.message.caption,
+        }}
+        type="info"
+      />
     );
   }
   return (

@@ -294,7 +294,7 @@ export default function Patients() {
           <TableBody>
             {rows.map((row) => (
               <TableRow key={row.name}>
-                <TableCell component="th" style={{ width: 160 }} scope="row">
+                <TableCell component="th" style={{ width: 100 }} scope="row">
                   {row.id}
                 </TableCell>
                 <TableCell component="th" style={{ width: 160 }} scope="row">

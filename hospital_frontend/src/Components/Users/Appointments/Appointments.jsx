@@ -235,7 +235,6 @@ export default function Appointments() {
     );
   }
   if (isCard.state) {
-    console.log(isCard.orderDetails);
     return <CheckoutPage order={isCard.orderDetails} />;
   }
   return (

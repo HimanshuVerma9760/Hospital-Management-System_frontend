@@ -162,7 +162,6 @@ export default function AddPatient() {
   }
   useEffect(() => {
     async function checkAuth() {
-      console.log("Auth");
       const verifiedUser = await useAuth();
       if (!verifiedUser.response) {
         setIsVerified(false);

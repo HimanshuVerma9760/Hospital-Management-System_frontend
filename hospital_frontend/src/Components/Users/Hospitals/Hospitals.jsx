@@ -381,13 +381,13 @@ export default function Hospitals() {
           <TableBody>
             {rows.map((row) => (
               <TableRow key={row.name}>
-                <TableCell style={{ width: 100 }} component="th" scope="row">
+                <TableCell style={{ width: 160 }} scope="row">
                   {row.id}
                 </TableCell>
-                <TableCell style={{ width: 160 }} component="th" scope="row">
+                <TableCell style={{ width: 160 }} scope="row">
                   {row.name}
                 </TableCell>
-                <TableCell style={{ width: 100 }} align="center">
+                <TableCell style={{ width: 160 }} align="center">
                   {row.location}
                 </TableCell>
                 <TableCell style={{ width: 160 }} align="center">
@@ -415,29 +415,32 @@ export default function Hospitals() {
                     </Tooltip>
                   )}
                 </TableCell>
-                <TableCell style={{ width: 200 }} align="center">
-                  <ListItem
-                    sx={{ display: "flex", justifyContent: "space-between" }}
-                  >
-                    <Tooltip title="edit">
-                      <IconButton onClick={() => editHospitalHandler(row.id)}>
-                        <Edit />
-                      </IconButton>
-                    </Tooltip>
-                    {row.status ? (
-                      <Tooltip title="delete">
-                      <IconButton onClick={() => deleteHandler(row.id)} sx={{color:"red"}}>
+                <TableCell
+                  style={{ width: 160 }}
+                  sx={{ display: "flex", justifyContent: "left", gap: "2rem" }}
+                  align="center"
+                >
+                  <Tooltip title="edit">
+                    <IconButton onClick={() => editHospitalHandler(row.id)}>
+                      <Edit />
+                    </IconButton>
+                  </Tooltip>
+                  {row.status ? (
+                    <Tooltip title="delete">
+                      <IconButton
+                        onClick={() => deleteHandler(row.id)}
+                        sx={{ color: "red" }}
+                      >
                         <Delete />
                       </IconButton>
-                      </Tooltip>
-                    ) : (
-                      <Tooltip title="restore">
+                    </Tooltip>
+                  ) : (
+                    <Tooltip title="restore">
                       <IconButton onClick={() => restoreHandler(row.id)}>
                         <Restore />
                       </IconButton>
-                      </Tooltip>
-                    )}
-                  </ListItem>
+                    </Tooltip>
+                  )}
                 </TableCell>
               </TableRow>
             ))}

@@ -16,20 +16,21 @@ const ModalContent = ({ isOpen, onClose, message, btn, type }) => {
     });
     if (response) {
       const result = await response.json();
-      console.log(result.message);
     }
     onClose();
   }
   async function deleteHospitalHandler() {
-    const response = await fetch(`${Conn}/hospitals/delete/soft/${message.id}}`, {
-      method: "delete",
-      headers: {
-        authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-    });
+    const response = await fetch(
+      `${Conn}/hospitals/delete/soft/${message.id}}`,
+      {
+        method: "delete",
+        headers: {
+          authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+    );
     if (response) {
       const result = await response.json();
-      console.log(result.message);
     }
     onClose();
   }
@@ -41,7 +42,6 @@ const ModalContent = ({ isOpen, onClose, message, btn, type }) => {
     });
     if (response) {
       const result = await response.json();
-      console.log(result.message);
     }
     onClose();
   }
@@ -53,7 +53,6 @@ const ModalContent = ({ isOpen, onClose, message, btn, type }) => {
     });
     if (response) {
       const result = await response.json();
-      console.log(result.message);
     }
     onClose();
   }
@@ -96,10 +95,21 @@ const ModalContent = ({ isOpen, onClose, message, btn, type }) => {
               {btn.text}
             </Link>
           </Button>
+        ) : type === "info" ? (
+          <Button onClick={() => onClose()}>Close</Button>
         ) : (
-          <Grid2 display="flex" gap="1rem" justifyContent="center" sx={{padding:"2rem"}}>
-            <Button variant="contained" onClick={clickHandler}>{btn}</Button>
-            <Button variant="outlined" onClick={() => onClose()}>Cancel</Button>
+          <Grid2
+            display="flex"
+            gap="1rem"
+            justifyContent="center"
+            sx={{ padding: "2rem" }}
+          >
+            <Button variant="contained" onClick={clickHandler}>
+              {btn}
+            </Button>
+            <Button variant="outlined" onClick={() => onClose()}>
+              Cancel
+            </Button>
           </Grid2>
         )}
       </Box>

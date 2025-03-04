@@ -15,12 +15,12 @@ export default function CheckoutPage({ order }) {
     });
     if (response.ok) {
       const result = await response.json();
-      console.log(result.result);
       setMyAppointment(result.result);
       setIsLoading(false);
     }
   }
   useEffect(() => {
+    localStorage.setItem("cop", true);
     fetchAppointmentDetails();
   }, []);
   if (isLoading) {
@@ -33,16 +33,20 @@ export default function CheckoutPage({ order }) {
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
-          backgroundColor:"white",
-          maxWidth:"50%",
-          margin:"auto",
-          boxShadow:"0px 1px 2px 0px cyan",
-          paddingBottom:"2rem",
-          paddingTop:"2rem",
-          borderRadius:"1rem"
+          backgroundColor: "white",
+          maxWidth: "50%",
+          margin: "auto",
+          boxShadow: "0px 1px 2px 0px cyan",
+          paddingBottom: "2rem",
+          paddingTop: "2rem",
+          borderRadius: "1rem",
         }}
       >
-        <Typography variant="h4" align="center" sx={{paddingTop:"1rem", paddingBottom:"1rem"}}>
+        <Typography
+          variant="h4"
+          align="center"
+          sx={{ paddingTop: "1rem", paddingBottom: "1rem" }}
+        >
           Bill Information
         </Typography>
         <Grid2 alignSelf="center" display="flex" flexDirection="column" gap={1}>

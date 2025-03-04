@@ -248,7 +248,6 @@ export default function Doctors() {
       const response = await fetch(`${Conn}/specializations`);
       if (response.ok) {
         const result = await response.json();
-        // console.log(result.result);
         setSpecializations(result.result);
       } else {
         console.error("Error fetching specializations:", result);
@@ -414,7 +413,7 @@ export default function Doctors() {
           <TableBody>
             {rows.map((row) => (
               <TableRow key={row.id}>
-                <TableCell component="th" scope="row">
+                <TableCell style={{ width: 100 }} component="th" scope="row">
                   {row.id}
                 </TableCell>
                 <TableCell style={{ width: 200 }} component="th" scope="row">
@@ -468,7 +467,7 @@ export default function Doctors() {
                       </IconButton>
                     </Tooltip>
                   ) : (
-                    <Tooltip title="Delete">
+                    <Tooltip title="Mark Inactive">
                       <IconButton sx={{ color: "red" }}>
                         <Delete onClick={() => deleteHandler(row.id)} />
                       </IconButton>

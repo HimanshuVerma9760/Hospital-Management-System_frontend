@@ -58,7 +58,6 @@ export default function EditDoctor() {
       const response = await fetch(`${Conn}/doctors/get/${reqId.current}`);
       if (response.ok) {
         const result = await response.json();
-        console.log(result.doctor.city_id);
         setName(result.doctor.name);
         setSpecialization(result.doctor.specialization_id);
         setCity(result.doctor.city_id);
@@ -306,6 +305,8 @@ export default function EditDoctor() {
       if (response.ok) {
         localStorage.setItem("op", result.message);
         nav("/users/doctors");
+      } else if (response.status !== 400) {
+        setMessage(result.message);
       } else {
         setMessage(result.message[0]);
       }
@@ -344,7 +345,14 @@ export default function EditDoctor() {
     );
   }
   function onCloseHandler() {
-    setShowPrompt(false);
+    setShowPrompt(prevState=>({
+      ...prevState,
+      state:false,
+      message:{
+        message:"",
+        caption:""
+      }
+    }));
   }
   if (showPrompt.state) {
     return (

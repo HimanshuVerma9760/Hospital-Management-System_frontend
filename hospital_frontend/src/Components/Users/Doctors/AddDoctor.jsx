@@ -53,7 +53,6 @@ export default function AddDoctor() {
     const response = await fetch(`${Conn}/specializations`);
     if (response.ok) {
       const result = await response.json();
-      // console.log(specializations);
       setSpecializations(result.result);
     } else {
       console.log("Some error occured");

@@ -1,7 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 import { RouterProvider } from "react-router";
 import { createTheme, CssBaseline } from "@mui/material";
-import { cyan, grey} from "@mui/material/colors";
+import { grey } from "@mui/material/colors";
 import { ThemeProvider } from "@emotion/react";
 import Welcome from "./Components/Users/Welcome";
 import Login from "./Components/Login";
@@ -16,8 +16,11 @@ import CreateAppointments from "./Components/Users/Appointments/CreateAppointmen
 import Appointments from "./Components/Users/Appointments/Appointments";
 import Success from "./Components/Users/Appointments/Success";
 import Cancel from "./Components/Users/Appointments/Cancel";
-import CheckoutPage from "./Components/Users/Appointments/CheckoutPage";
 import EditHospital from "./Components/Users/Hospitals/EditHospital";
+import Orders from "./Components/Users/Appointments/Orders";
+import Forms from "./Components/Users/Appointments/FormBuilder/Forms";
+import CreateForm from "./Components/Users/Appointments/FormBuilder/CreateForm";
+// import Forms from "./Components/Users/Appointments/FormBuilder/Forms";
 
 export default function App() {
   const theme = createTheme({
@@ -76,6 +79,18 @@ export default function App() {
         {
           path: "appointments/create",
           element: <CreateAppointments />,
+        },
+        {
+          path: "forms",
+          element: <Forms />,
+        },
+        {
+          path: "forms/create",
+          element: <CreateForm />,
+        },
+        {
+          path: "orders",
+          element: <Orders />,
         },
       ],
     },

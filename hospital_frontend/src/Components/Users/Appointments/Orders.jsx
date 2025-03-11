@@ -37,9 +37,8 @@ import CheckoutPage from "./CheckoutPage";
 import { indigo } from "@mui/material/colors";
 const Conn = import.meta.env.VITE_CONN_URI;
 
-export default function Appointments() {
+export default function Orders() {
   const [paymentStatus, setPaymentStatus] = useState(0);
-  //   const [diseases, setDiseases] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [fetchedOrders, setFetchedOrders] = useState([]);
   const [isCard, setIsCard] = useState({
@@ -47,18 +46,6 @@ export default function Appointments() {
     orderDetails: {},
   });
 
-  //   async function fetchDiseases() {
-  //     const response = await fetch(`${Conn}/diseases`);
-  //     if (response.ok) {
-  //       const result = await response.json();
-  //       setDiseases(result.result);
-  //     } else {
-  //       console.log("Some error occured");
-  //     }
-  //   }
-  //   useEffect(() => {
-  //     fetchDiseases();
-  //   }, []);
   function TablePaginationActions(props) {
     const theme = useTheme();
     const { count, page, rowsPerPage, onPageChange } = props;
@@ -144,6 +131,7 @@ export default function Appointments() {
 
   function createData(
     id,
+    orderNumber,
     appointmentNumber,
     appointment_id,
     name,
@@ -157,6 +145,7 @@ export default function Appointments() {
     const { date, time } = splitDateTime(dateTime);
     return {
       id,
+      orderNumber,
       appointmentNumber,
       appointment_id,
       name,
@@ -173,6 +162,7 @@ export default function Appointments() {
   const rows = fetchedOrders.map((eachOrder) =>
     createData(
       eachOrder.id,
+      eachOrder.orderNumber,
       eachOrder.appointment.appointmentNumber,
       eachOrder.appointment_id,
       eachOrder.appointment.patientName,
@@ -220,7 +210,6 @@ export default function Appointments() {
   }, [page, rowsPerPage, paymentStatus]);
 
   function paymentHandler(order) {
-    // setIsLoading(false);
     setIsCard((prevState) => ({
       ...prevState,
       state: true,
@@ -243,7 +232,7 @@ export default function Appointments() {
   return (
     <>
       <Typography variant="h4" align="center">
-        Appointments
+        Orders
       </Typography>
       <Grid2 display="flex" justifyContent="end" gap="1rem" alignItems="center">
         <Link to="create" style={{ textDecoration: "none", color: "black" }}>
@@ -277,7 +266,7 @@ export default function Appointments() {
                   sx={{ fontSize: "1rem" }}
                   color="green"
                 >
-                  Id
+                  Order Number
                 </Typography>
               </TableCell>
               <TableCell>
@@ -286,34 +275,7 @@ export default function Appointments() {
                   sx={{ fontSize: "1rem" }}
                   color="green"
                 >
-                  Unique Appointment Number
-                </Typography>
-              </TableCell>
-              <TableCell>
-                <Typography
-                  variant="h6"
-                  sx={{ fontSize: "1rem" }}
-                  color="green"
-                >
-                  Name
-                </Typography>
-              </TableCell>
-              <TableCell align="center">
-                <Typography
-                  variant="h6"
-                  sx={{ fontSize: "1rem" }}
-                  color="green"
-                >
-                  Date
-                </Typography>
-              </TableCell>
-              <TableCell align="center">
-                <Typography
-                  variant="h6"
-                  sx={{ fontSize: "1rem" }}
-                  color="green"
-                >
-                  Time
+                  Appointment Number
                 </Typography>
               </TableCell>
               <TableCell align="center">
@@ -331,6 +293,24 @@ export default function Appointments() {
                   sx={{ fontSize: "1rem" }}
                   color="green"
                 >
+                  Amount
+                </Typography>
+              </TableCell>
+              <TableCell align="center">
+                <Typography
+                  variant="h6"
+                  sx={{ fontSize: "1rem" }}
+                  color="green"
+                >
+                  Payment Method
+                </Typography>
+              </TableCell>
+              <TableCell align="center">
+                <Typography
+                  variant="h6"
+                  sx={{ fontSize: "1rem" }}
+                  color="green"
+                >
                   Payment Status
                 </Typography>
               </TableCell>
@@ -339,24 +319,24 @@ export default function Appointments() {
           <TableBody>
             {rows.map((row) => (
               <TableRow key={row.name}>
-                <TableCell component="th" style={{ width: 50 }} scope="row">
-                  {row.id}
+                <TableCell component="th" style={{ width: 300 }} scope="row">
+                  {row.orderNumber}
                 </TableCell>
-                <TableCell component="th" style={{ width: 350 }} scope="row">
+                <TableCell component="th" style={{ width: 300 }} scope="row">
                   {row.appointmentNumber}
                 </TableCell>
-                <TableCell
+                {/* <TableCell
                   component="th"
                   style={{ width: 120 }}
                   scope="row"
                   sx={{ fontSize: "12.5px" }}
                 >
                   {row.name}
-                </TableCell>
+                </TableCell> */}
                 {/* <TableCell style={{ width: 100 }} align="center">
                   {row.email}
                 </TableCell> */}
-                <TableCell
+                {/* <TableCell
                   style={{ width: 140 }}
                   align="center"
                   sx={{ fontSize: "12.5px" }}
@@ -369,34 +349,36 @@ export default function Appointments() {
                   sx={{ fontSize: "12.5px" }}
                 >
                   {row.time}
-                </TableCell>
+                </TableCell> */}
                 <TableCell
                   style={{ width: 100 }}
                   align="center"
                   sx={{ fontSize: "13px" }}
                 >
-                  {row.status}
+                  {row.paymentStatus === "Paid"
+                    ? "Completed"
+                    : row.paymentStatus}
                 </TableCell>
-                {/* <TableCell
-                  style={{ width: 130 }}
+                <TableCell
+                  style={{ width: 150 }}
                   align="center"
                   sx={{ fontSize: "13px" }}
                 >
                   {row.amount}
-                </TableCell> */}
-                {/* <TableCell
-                  style={{ width: 160 }}
+                </TableCell>
+                <TableCell
+                  style={{ width: 200 }}
                   align="center"
                   sx={{ fontSize: "13px" }}
                 >
                   {row.paymentMethod}
-                </TableCell> */}
-                <TableCell style={{ width: 160 }} align="center">
+                </TableCell>
+                <TableCell style={{ width: 190 }} align="center">
                   {(row.paymentStatus === "Pending" ||
                     row.paymentStatus === "Failed") &&
                   row.paymentMethod === "Card" ? (
                     <Button size="small" onClick={() => paymentHandler(row)}>
-                      Pay now
+                      Retry
                     </Button>
                   ) : (
                     row.paymentStatus
@@ -409,7 +391,7 @@ export default function Appointments() {
             <TableRow>
               <TablePagination
                 rowsPerPageOptions={[5, 10, 25, { label: "All", value: -1 }]}
-                colSpan={5}
+                colSpan={4}
                 count={totalCount}
                 rowsPerPage={rowsPerPage}
                 page={page}

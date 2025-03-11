@@ -288,6 +288,9 @@ export default function Hospitals() {
   }
   return (
     <>
+      <Typography variant="h4" align="center">
+        Hospitals
+      </Typography>
       <Grid2 display="flex" justifyContent="end">
         <Link to="add" style={{ textDecoration: "none", color: "black" }}>
           <Button

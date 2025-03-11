@@ -38,8 +38,8 @@ const styles = {
     backgroundColor: "#fff",
     padding: "20px",
     borderRadius: "10px",
-    width: "25rem",
-    height: "13rem",
+    // width: "25rem",
+    // height: "13rem",
     textAlign: "center",
   },
   closeButton: {

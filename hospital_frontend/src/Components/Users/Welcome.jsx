@@ -21,7 +21,9 @@ import {
 import HomeIcon from "@mui/icons-material/Home";
 import {
   Create,
+  FormatAlignCenter,
   ListAltOutlined,
+  ListAltRounded,
   LocalHospital,
   Logout,
   Person,
@@ -173,6 +175,37 @@ export default function Welcome() {
             </ListItemButton>
           </Link>
           <Link
+            to="forms"
+            style={{ textDecoration: "none", color: "black" }}
+          >
+            <ListItemButton
+              sx={
+                nav.pathname.split("/")[2] === "forms" && {
+                  backgroundColor: "whitesmoke",
+                }
+              }
+            >
+              <ListItemIcon>
+                <FormatAlignCenter />
+              </ListItemIcon>
+              <ListItemText primary="Forms" />
+            </ListItemButton>
+          </Link>
+          <Link to="orders" style={{ textDecoration: "none", color: "black" }}>
+            <ListItemButton
+              sx={
+                nav.pathname.split("/")[2] === "orders" && {
+                  backgroundColor: "whitesmoke",
+                }
+              }
+            >
+              <ListItemIcon>
+                <ListAltRounded />
+              </ListItemIcon>
+              <ListItemText primary="Orders" />
+            </ListItemButton>
+          </Link>
+          <Link
             to="appointments"
             style={{ textDecoration: "none", color: "black" }}
           >
@@ -205,7 +238,6 @@ export default function Welcome() {
             backgroundColor: indigo[300],
             color: "white",
             p: 2,
-            // borderRadius: "2.5rem",
           }}
         >
           <Typography
@@ -224,7 +256,6 @@ export default function Welcome() {
           </Avatar>
         </Grid2>
         <Box sx={{ p: 3, marginTop: "0.5rem" }}>
-          {/* <Toolbar /> */}
           <Outlet />
         </Box>
       </Box>

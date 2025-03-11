@@ -294,6 +294,9 @@ export default function Doctors() {
   }
   return (
     <>
+      <Typography variant="h4" align="center">
+        Doctors
+      </Typography>
       <Grid2 display="flex" justifyContent="end" gap="1rem" alignItems="center">
         <FormControl sx={{ minWidth: 150 }}>
           <Select

@@ -12,6 +12,7 @@ import {
   Select,
   Skeleton,
   TableHead,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import * as React from "react";
@@ -31,29 +32,47 @@ import FirstPageIcon from "@mui/icons-material/FirstPage";
 import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import LastPageIcon from "@mui/icons-material/LastPage";
-import { Add } from "@mui/icons-material";
+import { Add, Edit, Preview } from "@mui/icons-material";
 import { Link } from "react-router";
 import { indigo } from "@mui/material/colors";
 const Conn = import.meta.env.VITE_CONN_URI;
 
-export default function Patients() {
-  const [disease, setDisease] = useState(0);
-  const [diseases, setDiseases] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [fetchedPatients, setFetchedPatients] = useState([]);
+import ViewForm from "./ViewForm";
+import ModalContent from "../../../Modal/ModalContent";
+export default function Forms() {
+  const [forms, setForms] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [viewFormMode, setViewFormMode] = useState(false);
+  const [showPrompt, setShowPrompt] = useState({
+    state: false,
+    type: "",
+  });
 
-  async function fetchDiseases() {
-    const response = await fetch(`${Conn}/diseases`);
-    if (response.ok) {
-      const result = await response.json();
-      setDiseases(result.result);
-    } else {
-      console.log("Some error occured");
+  function onCloseHandler() {
+    setShowPrompt(false);
+    getForms();
+  }
+
+  async function getForms() {
+    const response = await fetch(
+      `${Conn}/form/get-all/?page=${page + 1}&limit=${rowsPerPage}`,
+      {
+        method: "get",
+        headers: {
+          authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+    );
+    if (response) {
+      if (response.ok) {
+        const result = await response.json();
+        setForms(result.result);
+        setTotalCount(result.totalRecords);
+      }
+      setIsLoading(false);
     }
   }
-  useEffect(() => {
-    fetchDiseases();
-  }, []);
+
   function TablePaginationActions(props) {
     const theme = useTheme();
     const { count, page, rowsPerPage, onPageChange } = props;
@@ -122,18 +141,17 @@ export default function Patients() {
     rowsPerPage: PropTypes.number.isRequired,
   };
 
-  function createData(id, name, city, hospital, disease, Doctor) {
-    return { id, name, city, hospital, disease, Doctor };
+  function createData(inputId, id, title, description, createdAt) {
+    return { inputId, id, title, description, createdAt };
   }
 
-  const rows = fetchedPatients.map((eachPatient) =>
+  const rows = forms.map((eachForm) =>
     createData(
-      eachPatient.id,
-      eachPatient.name,
-      eachPatient.city.name,
-      eachPatient.hospital.name,
-      eachPatient.disease.name,
-      eachPatient.doctor.name
+      eachForm.id,
+      eachForm.form.id,
+      eachForm.form.title,
+      eachForm.form.description,
+      eachForm.form.createdAt
     )
   );
 
@@ -150,89 +168,83 @@ export default function Patients() {
     setPage(0);
   };
   useEffect(() => {
-    setIsLoading(true);
-    async function fetchData() {
-      try {
-        const response = await fetch(
-          `${Conn}/patients/?page=${
-            page + 1
-          }&limit=${rowsPerPage}&disease=${disease}`
-        );
-        const result = await response.json();
-        if (response.ok) {
-          setFetchedPatients(result.result);
-          setTotalCount(result.totalRecords);
-        } else {
-          console.error("Error fetching doctors:", result);
-        }
-      } catch (error) {
-        console.error("Fetch error:", error);
-      }
-      setIsLoading(false);
-    }
-    fetchData();
-  }, [page, rowsPerPage, disease]);
-
+    localStorage.removeItem("title");
+    localStorage.removeItem("description");
+  }, []);
+  useEffect(() => {
+    getForms();
+  }, [page, rowsPerPage]);
+  const reqFormId = React.useRef();
   if (isLoading) {
     return (
       <>
-        <Skeleton variant="rectangular" height={100} />
-        <Skeleton variant="text" height={80} width={300} />
-        <Skeleton variant="rectangular" height={100} />
+        <Skeleton variant="text" width={300} />
+        <Skeleton variant="text" width={450} />
+        <Skeleton variant="rectangular" width={500} height={200} />
       </>
     );
   }
-
+  if (viewFormMode) {
+    return (
+      <ViewForm
+        forms={forms.filter((eachForm) => eachForm.id === reqFormId.current)}
+        toggleViewMode={setViewFormMode}
+      />
+    );
+  }
+  if (showPrompt.state) {
+    if (showPrompt.type === "newForm") {
+      return (
+        <ModalContent
+          isOpen={showPrompt}
+          type="form"
+          onClose={onCloseHandler}
+          message={{
+            message: "Add Form",
+            caption: "Title and description are needed to continue.",
+          }}
+        />
+      );
+    } else if (showPrompt.type === "editForm") {
+      return (
+        <ModalContent
+          isOpen={showPrompt}
+          type={showPrompt.type}
+          metaData={{ id: reqFormId.current }}
+          onClose={onCloseHandler}
+          message={{
+            message: "Add the Information",
+            caption: "Add information you want to change",
+          }}
+        />
+      );
+    }
+  }
   return (
     <>
-      <Typography variant="h4" align="center">
-        Patients
-      </Typography>
-      <Grid2 display="flex" justifyContent="end" gap="1rem" alignItems="center">
-        <FormControl sx={{ minWidth: 150 }}>
-          <Select
-            id="Disease"
-            name="Disease"
-            value={disease}
-            onChange={(e) => setDisease(e.target.value)}
-            sx={{ marginBottom: "5px", width: "10rem" }}
-            onClick={() => setPage(0)}
-            size="small"
-          >
-            <MenuItem id="all" value={0}>
-              Select Disease
-            </MenuItem>
-            {diseases.map((eachDisease) => (
-              <MenuItem
-                key={eachDisease.id}
-                id={eachDisease.name}
-                value={eachDisease.id}
-              >
-                {eachDisease.name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <Link to="add" style={{ textDecoration: "none", color: "black" }}>
+      <Grid2>
+        <Typography variant="h4" align="center">
+          Forms
+        </Typography>
+        <Grid2 display="flex" justifyContent="right" marginBottom="0.5rem">
           <Button
             variant="contained"
             size="small"
-            sx={{
-              borderRadius: "6px",
-              backgroundColor: indigo[300],
-              marginBottom: "5px",
-              paddingTop: "8px",
-              paddingBottom: "8px",
-              paddingLeft: "10px",
-              paddingRight: "10px",
-            }}
+            onClick={() =>
+              setShowPrompt((prevState) => ({
+                ...prevState,
+                state: true,
+                type: "newForm",
+              }))
+            }
+            sx={{ backgroundColor: indigo[300] }}
           >
-            Add Patient
+            Add Form
           </Button>
-        </Link>
+        </Grid2>
       </Grid2>
       {rows.length === 0 && (
-        <Alert severity="info">No Patient found for the selected disease</Alert>
+        <Alert severity="info">No Forms found, click Add Forms to add </Alert>
       )}
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 500 }} aria-label="custom pagination table">
@@ -253,7 +265,7 @@ export default function Patients() {
                   sx={{ fontSize: "1.2rem" }}
                   color="green"
                 >
-                  Name
+                  Title
                 </Typography>
               </TableCell>
               <TableCell align="center">
@@ -262,7 +274,7 @@ export default function Patients() {
                   sx={{ fontSize: "1.2rem" }}
                   color="green"
                 >
-                  City
+                  Description
                 </Typography>
               </TableCell>
               <TableCell align="center">
@@ -271,7 +283,7 @@ export default function Patients() {
                   sx={{ fontSize: "1.2rem" }}
                   color="green"
                 >
-                  Hospital
+                  Created On
                 </Typography>
               </TableCell>
               <TableCell align="center">
@@ -280,40 +292,53 @@ export default function Patients() {
                   sx={{ fontSize: "1.2rem" }}
                   color="green"
                 >
-                  Disease
-                </Typography>
-              </TableCell>
-              <TableCell align="center">
-                <Typography
-                  variant="h6"
-                  sx={{ fontSize: "1.2rem" }}
-                  color="green"
-                >
-                  Doctor
+                  Action
                 </Typography>
               </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {rows.map((row) => (
-              <TableRow key={row.name}>
-                <TableCell component="th" style={{ width: 100 }} scope="row">
-                  {row.id}
-                </TableCell>
-                <TableCell component="th" style={{ width: 160 }} scope="row">
-                  {row.name}
-                </TableCell>
-                <TableCell style={{ width: 160 }} align="center">
-                  {row.city}
+              <TableRow key={row.id}>
+                <TableCell style={{ width: 100 }}>{row.id}</TableCell>
+                <TableCell style={{ width: 150 }}>{row.title}</TableCell>
+                <TableCell style={{ width: 200 }} align="center">
+                  {row.description}
                 </TableCell>
                 <TableCell style={{ width: 160 }} align="center">
-                  {row.hospital}
+                  {row.createdAt.split("T")[0]}
                 </TableCell>
-                <TableCell style={{ width: 160 }} align="center">
-                  {row.disease}
-                </TableCell>
-                <TableCell style={{ width: 160 }} align="center">
-                  {row.Doctor}
+                <TableCell style={{ width: 100 }} align="center">
+                  <Grid2
+                    sx={{ display: "flex", justifyContent: "space-around" }}
+                  >
+                    <Tooltip title="Edit">
+                      <IconButton
+                        onClick={() => {
+                          reqFormId.current = row.id;
+                          setShowPrompt((prevState) => ({
+                            ...prevState,
+                            state: true,
+                            type: "editForm",
+                          }));
+                        }}
+                        sx={{ color: indigo[300] }}
+                      >
+                        <Edit />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Preview">
+                      <IconButton
+                        onClick={() => {
+                          reqFormId.current = row.inputId;
+                          setViewFormMode(true);
+                        }}
+                        sx={{ color: indigo[300] }}
+                      >
+                        <Preview />
+                      </IconButton>
+                    </Tooltip>
+                  </Grid2>
                 </TableCell>
               </TableRow>
             ))}
@@ -322,7 +347,7 @@ export default function Patients() {
             <TableRow>
               <TablePagination
                 rowsPerPageOptions={[5, 10, 25, { label: "All", value: -1 }]}
-                colSpan={4}
+                colSpan={3}
                 count={totalCount}
                 rowsPerPage={rowsPerPage}
                 page={page}

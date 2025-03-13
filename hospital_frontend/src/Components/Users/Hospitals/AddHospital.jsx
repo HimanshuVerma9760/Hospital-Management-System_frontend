@@ -16,6 +16,7 @@ import {
 import { useEffect, useState } from "react";
 import { Form } from "react-router";
 import useAuth from "../../../util/useAuth";
+import toast, { Toaster } from "react-hot-toast";
 const Conn = import.meta.env.VITE_CONN_URI;
 
 export default function AddHospital() {
@@ -26,7 +27,6 @@ export default function AddHospital() {
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [city, setCity] = useState("");
-  const [message, setMessage] = useState("");
   async function fetchCities() {
     const response = await fetch(`${Conn}/cities`);
     if (response.ok) {
@@ -100,28 +100,42 @@ export default function AddHospital() {
       location: location,
       city_id: city,
     };
-
-    const response = await fetch(`${Conn}/hospitals/add`, {
-      method: "post",
-      headers: {
-        "Content-Type": "application/json",
-        authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-      body: JSON.stringify(formData),
-    });
-    if (response) {
-      const result = await response.json();
-      setSubmissionProgress(false);
-      if (response.ok) {
-        setMessage(result.message);
-        setName("");
-        setLocation("");
-        setCity("");
-      } else {
-        setMessage(result.message[0]);
+    try {
+      const response = await fetch(`${Conn}/hospitals/add`, {
+        method: "post",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify(formData),
+      });
+      if (response) {
+        const result = await response.json();
+        setSubmissionProgress(false);
+        if (response.ok) {
+          notify("success");
+          setName("");
+          setLocation("");
+          setCity("");
+        } else {
+          if (response.status === "400") {
+            notify(result.message[0]);
+          } else {
+            notify(result.message);
+          }
+        }
       }
+    } catch (error) {
+      console.log("error: ", error);
+      notify("Server is down, try again later");
+      setSubmissionProgress(false);
     }
   }
+  const notify = (response) => {
+    response === "success"
+      ? toast.success("Successfully added hospital")
+      : toast.error(response);
+  };
   function containsNumber(name) {
     return /\d/.test(name);
   }
@@ -225,6 +239,7 @@ export default function AddHospital() {
           borderRadius: "1rem",
         }}
       >
+        <Toaster />
         <Grid2 sx={{ marginBottom: "2rem", paddingTop: "3rem" }}>
           <Typography variant="h4" align="center">
             Add Hospital
@@ -236,12 +251,10 @@ export default function AddHospital() {
             justifyContent="center"
             color="red"
           >
-            {submissionProgress ? (
+            {submissionProgress && (
               <Grid2 display="flex" justifyContent="center">
                 <CircularProgress />
               </Grid2>
-            ) : (
-              message
             )}
           </Typography>
         </Grid2>

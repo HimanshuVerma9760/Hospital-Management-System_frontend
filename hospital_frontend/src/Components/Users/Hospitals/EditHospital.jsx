@@ -18,6 +18,7 @@ import { Form, useLocation, useNavigate } from "react-router";
 import useAuth from "../../../util/useAuth";
 import ModalContent from "../../Modal/ModalContent";
 import { indigo } from "@mui/material/colors";
+import toast, { Toaster } from "react-hot-toast";
 const Conn = import.meta.env.VITE_CONN_URI;
 
 export default function EditHospital() {
@@ -28,7 +29,6 @@ export default function EditHospital() {
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [city, setCity] = useState("");
-  const [message, setMessage] = useState("");
   const [error, setError] = useState({
     nameError: {
       state: false,
@@ -43,15 +43,7 @@ export default function EditHospital() {
       message: "",
     },
   });
-  const [showPrompt, setShowPrompt] = useState({
-    state: false,
-    type: "",
-    message: {
-      message: "",
-      caption: "",
-    },
-  });
-
+  const navigate = useNavigate();
   const reqId = useRef();
 
   useEffect(() => {
@@ -68,13 +60,7 @@ export default function EditHospital() {
     }
     const id = localStorage.getItem("id");
     if (!id) {
-      setShowPrompt({
-        state: true,
-        message: {
-          message: "No hospital id found",
-          caption: "Redirecting to hospital page",
-        },
-      });
+      navigate("users/hospitals");
       return;
     }
     reqId.current = localStorage.getItem("id");
@@ -196,28 +182,38 @@ export default function EditHospital() {
       location: location,
       city_id: city,
     };
-    const response = await fetch(`${Conn}/hospitals/${reqId.current}`, {
-      method: "put",
-      headers: {
-        "Content-Type": "application/json",
-        authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-      body: JSON.stringify(formData),
-    });
-    if (response) {
-      const result = await response.json();
-      setSubmissionProgress(false);
-      if (response.ok) {
-        localStorage.setItem("op", result.message);
-        nav("/users/hospitals");
-      } else if (response.status === "400") {
-        setMessage(result.message[0]);
-      } else {
-        setMessage(result.message);
+    try {
+      const response = await fetch(`${Conn}/hospitals/${reqId.current}`, {
+        method: "put",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify(formData),
+      });
+      if (response) {
+        console.log("response");
+        const result = await response.json();
+        setSubmissionProgress(false);
+        if (response.ok) {
+          localStorage.setItem("op", result.message);
+          nav("/users/hospitals");
+        } else if (response.status === "400") {
+          notify(result.message[0]);
+        } else {
+          notify(result.message);
+        }
       }
+    } catch (error) {
+      console.log("error: ", error);
+      setSubmissionProgress(false);
+      notify("Server is down, try again later!");
     }
   }
 
+  const notify = (response) => {
+    toast.error(response);
+  };
   if (isLoading) {
     return (
       <Grid2
@@ -249,22 +245,6 @@ export default function EditHospital() {
       </Alert>
     );
   }
-  function onCloseHandler() {
-    setShowPrompt(false);
-  }
-  if (showPrompt.state) {
-    return (
-      <ModalContent
-        btn={{ text: "Hospital page", loc: "/users/hospitals" }}
-        isOpen={showPrompt.state}
-        onClose={onCloseHandler}
-        message={{
-          message: showPrompt.message.message,
-          caption: showPrompt.message.caption,
-        }}
-      />
-    );
-  }
   localStorage.removeItem("id");
   return (
     <>
@@ -277,7 +257,15 @@ export default function EditHospital() {
           borderRadius: "1rem",
         }}
       >
-        <Grid2 sx={{ paddingTop: "1rem" }}>
+        <Toaster />
+        <Grid2
+          sx={{
+            paddingTop: "1rem",
+            display: "flex",
+            flexDirection: "column",
+            gap: "1.5rem",
+          }}
+        >
           <Typography variant="h5" sx={{ fontSize: "1.5rem" }} align="center">
             Edit Hospital
           </Typography>
@@ -288,12 +276,10 @@ export default function EditHospital() {
             justifyContent="center"
             color="red"
           >
-            {submissionProgress ? (
+            {submissionProgress && (
               <Grid2 display="flex" justifyContent="center">
                 <CircularProgress />
               </Grid2>
-            ) : (
-              message
             )}
           </Typography>
         </Grid2>

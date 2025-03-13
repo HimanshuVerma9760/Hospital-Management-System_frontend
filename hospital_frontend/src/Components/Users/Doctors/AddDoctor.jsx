@@ -16,6 +16,7 @@ import {
 import { useEffect, useState } from "react";
 import { Form } from "react-router";
 import useAuth from "../../../util/useAuth";
+import { Toaster } from "react-hot-toast";
 const Conn = import.meta.env.VITE_CONN_URI;
 
 export default function AddDoctor() {
@@ -29,7 +30,6 @@ export default function AddDoctor() {
   const [fees, setFees] = useState("");
   const [hospital, setHospital] = useState("");
   const [hospitals, setHospitals] = useState([]);
-  const [message, setMessage] = useState("");
   const [specializations, setSpecializations] = useState([]);
   async function fetchCities() {
     const response = await fetch(`${Conn}/cities`);
@@ -249,32 +249,44 @@ export default function AddDoctor() {
       fees: Number(fees),
     };
 
-    const response = await fetch(`${Conn}/doctors/add`, {
-      method: "post",
-      headers: {
-        "Content-Type": "application/json",
-        authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-      body: JSON.stringify(formData),
-    });
-    if (response) {
-      const result = await response.json();
-      setSubmissionProgress(false);
-      if (response.ok) {
-        setMessage(result.message);
-        setName("");
-        setSpecialization("");
-        setCity("");
-        setHospital("");
-        setFees("");
-      } else if(response.status===400){
-        setMessage(result.message[0]);
-      }else{
-        setMessage(result.message);
+    try {
+      const response = await fetch(`${Conn}/doctors/add`, {
+        method: "post",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify(formData),
+      });
+      if (response) {
+        const result = await response.json();
+        setSubmissionProgress(false);
+        if (response.ok) {
+          notify("success");
+          setName("");
+          setSpecialization("");
+          setCity("");
+          setHospital("");
+          setFees("");
+        } else {
+          if (response.status === "400") {
+            notify(result.message[0]);
+          } else {
+            notify(result.message);
+          }
+        }
       }
+    } catch (error) {
+      console.log("error: ", error);
+      notify("Server is down, try again later");
+      setSubmissionProgress(false);
     }
   }
-
+  const notify = (response) => {
+    response === "success"
+      ? toast.success("Successfully added hospital")
+      : toast.error(response);
+  };
   if (isLoading) {
     return (
       <Grid2
@@ -317,8 +329,9 @@ export default function AddDoctor() {
           borderRadius: "1rem",
         }}
       >
-        <Grid2 sx={{paddingTop:"1rem"}}>
-          <Typography variant="h5" sx={{fontSize:"1.5rem"}} align="center">
+        <Toaster />
+        <Grid2 sx={{ paddingTop: "1rem" }}>
+          <Typography variant="h5" sx={{ fontSize: "1.5rem" }} align="center">
             Add Doctor
           </Typography>
           <Typography
@@ -328,18 +341,16 @@ export default function AddDoctor() {
             justifyContent="center"
             color="red"
           >
-            {submissionProgress ? (
+            {submissionProgress && (
               <Grid2 display="flex" justifyContent="center">
                 <CircularProgress />
               </Grid2>
-            ) : (
-              message
             )}
           </Typography>
         </Grid2>
         <Form onSubmit={onSubmitHandler}>
           <Grid2
-          container
+            container
             sx={{
               display: "flex",
               flexDirection: "column",

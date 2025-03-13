@@ -231,10 +231,10 @@ export default function Orders() {
   }
   return (
     <>
-      <Typography variant="h4" align="center">
+      <Typography variant="h4" align="center" sx={{marginBottom:"1.8rem"}}>
         Orders
       </Typography>
-      <Grid2 display="flex" justifyContent="end" gap="1rem" alignItems="center">
+      {/* <Grid2 display="flex" justifyContent="end" gap="1rem" alignItems="center">
         <Link to="create" style={{ textDecoration: "none", color: "black" }}>
           <Button
             variant="contained"
@@ -252,7 +252,7 @@ export default function Orders() {
             Add Appointment
           </Button>
         </Link>
-      </Grid2>
+      </Grid2> */}
       {rows.length === 0 && (
         <Alert severity="info">No Appointment found!</Alert>
       )}
@@ -264,7 +264,7 @@ export default function Orders() {
                 <Typography
                   variant="h6"
                   sx={{ fontSize: "1rem" }}
-                  color="green"
+                  color="black"
                 >
                   Order Number
                 </Typography>
@@ -273,7 +273,7 @@ export default function Orders() {
                 <Typography
                   variant="h6"
                   sx={{ fontSize: "1rem" }}
-                  color="green"
+                  color="black"
                 >
                   Appointment Number
                 </Typography>
@@ -282,7 +282,7 @@ export default function Orders() {
                 <Typography
                   variant="h6"
                   sx={{ fontSize: "1rem" }}
-                  color="green"
+                  color="black"
                 >
                   Status
                 </Typography>
@@ -291,7 +291,7 @@ export default function Orders() {
                 <Typography
                   variant="h6"
                   sx={{ fontSize: "1rem" }}
-                  color="green"
+                  color="black"
                 >
                   Amount
                 </Typography>
@@ -300,7 +300,7 @@ export default function Orders() {
                 <Typography
                   variant="h6"
                   sx={{ fontSize: "1rem" }}
-                  color="green"
+                  color="black"
                 >
                   Payment Method
                 </Typography>
@@ -309,7 +309,7 @@ export default function Orders() {
                 <Typography
                   variant="h6"
                   sx={{ fontSize: "1rem" }}
-                  color="green"
+                  color="black"
                 >
                   Payment Status
                 </Typography>
@@ -325,31 +325,6 @@ export default function Orders() {
                 <TableCell component="th" style={{ width: 300 }} scope="row">
                   {row.appointmentNumber}
                 </TableCell>
-                {/* <TableCell
-                  component="th"
-                  style={{ width: 120 }}
-                  scope="row"
-                  sx={{ fontSize: "12.5px" }}
-                >
-                  {row.name}
-                </TableCell> */}
-                {/* <TableCell style={{ width: 100 }} align="center">
-                  {row.email}
-                </TableCell> */}
-                {/* <TableCell
-                  style={{ width: 140 }}
-                  align="center"
-                  sx={{ fontSize: "12.5px" }}
-                >
-                  {row.date}
-                </TableCell>
-                <TableCell
-                  style={{ width: 140 }}
-                  align="center"
-                  sx={{ fontSize: "12.5px" }}
-                >
-                  {row.time}
-                </TableCell> */}
                 <TableCell
                   style={{ width: 100 }}
                   align="center"
@@ -367,7 +342,7 @@ export default function Orders() {
                   {row.amount}
                 </TableCell>
                 <TableCell
-                  style={{ width: 200 }}
+                  style={{ width: 210 }}
                   align="center"
                   sx={{ fontSize: "13px" }}
                 >

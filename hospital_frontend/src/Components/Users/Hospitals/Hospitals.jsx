@@ -42,6 +42,7 @@ import {
 import { Link, useNavigate } from "react-router";
 import { indigo } from "@mui/material/colors";
 import ModalContent from "../../Modal/ModalContent";
+import toast, { Toaster } from "react-hot-toast";
 const Conn = import.meta.env.VITE_CONN_URI;
 
 export default function Hospitals() {
@@ -49,7 +50,7 @@ export default function Hospitals() {
   const [isLoading, setIsLoading] = useState(false);
   const [fetchedHospitals, setFetchedHospitals] = useState([]);
   // const [message, setMessage] = useState("");
-  const [op, setOp] = useState(false);
+  // const [op, setOp] = useState(false);
   const [showPrompt, setShowPrompt] = useState({
     state: false,
     type: "",
@@ -62,17 +63,11 @@ export default function Hospitals() {
 
   useEffect(() => {
     if (localStorage.getItem("op")) {
-      setOp(true);
+      notify("success");
+      localStorage.removeItem("op");
     }
-  }, [op]);
+  }, []);
 
-  // useEffect(() => {
-  //   if (message.length > 0) {
-  //     setTimeout(() => {
-  //       setMessage("");
-  //     }, 2000);
-  //   }
-  // }, [message]);
   function TablePaginationActions(props) {
     const theme = useTheme();
     const { count, page, rowsPerPage, onPageChange } = props;
@@ -196,15 +191,26 @@ export default function Hospitals() {
             setTotalCount(result.totalRecords);
           } else {
             console.error("Error fetching doctors:", result);
+            notify("Error fetching doctors!");
           }
         } catch (error) {
           console.error("Fetch error:", error);
+          notify("Server is down, try again later!");
         }
       }
       setIsLoading(false);
     }
     checkAuth();
   }, [page, rowsPerPage, showPrompt.state]);
+
+  const notify = (response) => {
+    if (response === "success") {
+      toast.success("Hospital successfully updated");
+    } else {
+      toast.error(response);
+    }
+  };
+
   function onClose() {
     setShowPrompt((prevState) => ({
       ...prevState,
@@ -216,10 +222,6 @@ export default function Hospitals() {
     }));
   }
   const navigate = useNavigate();
-  function editHandler(id) {
-    localStorage.setItem("id", id);
-    navigate("edit");
-  }
 
   function deleteHandler(id) {
     reqId.current = id;
@@ -280,17 +282,12 @@ export default function Hospitals() {
       />
     );
   }
-  if (localStorage.getItem("op")) {
-    setTimeout(() => {
-      localStorage.removeItem("op");
-      setOp(false);
-    }, 2000);
-  }
   return (
     <>
-      <Typography variant="h4" align="center">
+      <Typography variant="h4" fontWeight="bold" align="center">
         Hospitals
       </Typography>
+      <Toaster />
       <Grid2 display="flex" justifyContent="end">
         <Link to="add" style={{ textDecoration: "none", color: "black" }}>
           <Button
@@ -310,7 +307,7 @@ export default function Hospitals() {
           </Button>
         </Link>
       </Grid2>
-      {op && <Alert severity="success">{localStorage.getItem("op")}</Alert>}
+      {/* {op && <Alert severity="success">{localStorage.getItem("op")}</Alert>} */}
       {/* {message && <Alert severity="success">{message}</Alert>} */}
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 500 }} aria-label="custom pagination table">
@@ -319,7 +316,7 @@ export default function Hospitals() {
               <TableCell>
                 <Typography
                   variant="h6"
-                  color="green"
+                  color="black"
                   sx={{ fontSize: "1.2rem" }}
                 >
                   Id
@@ -328,7 +325,7 @@ export default function Hospitals() {
               <TableCell>
                 <Typography
                   variant="h6"
-                  color="green"
+                  color="black"
                   sx={{ fontSize: "1.2rem" }}
                 >
                   Name
@@ -337,7 +334,7 @@ export default function Hospitals() {
               <TableCell align="center">
                 <Typography
                   variant="h6"
-                  color="green"
+                  color="black"
                   sx={{ fontSize: "1.2rem" }}
                 >
                   Location
@@ -346,7 +343,7 @@ export default function Hospitals() {
               <TableCell align="center">
                 <Typography
                   variant="h6"
-                  color="green"
+                  color="black"
                   sx={{ fontSize: "1.2rem" }}
                 >
                   City
@@ -355,7 +352,7 @@ export default function Hospitals() {
               <TableCell align="center">
                 <Typography
                   variant="h6"
-                  color="green"
+                  color="black"
                   sx={{ fontSize: "1.2rem" }}
                 >
                   Doctors (#)
@@ -364,7 +361,7 @@ export default function Hospitals() {
               <TableCell align="center">
                 <Typography
                   variant="h6"
-                  color="green"
+                  color="black"
                   sx={{ fontSize: "1.2rem" }}
                 >
                   Status
@@ -373,7 +370,7 @@ export default function Hospitals() {
               <TableCell align="center">
                 <Typography
                   variant="h6"
-                  color="green"
+                  color="black"
                   sx={{ fontSize: "1.2rem" }}
                 >
                   Actions
@@ -403,24 +400,24 @@ export default function Hospitals() {
                   {row.status ? (
                     <Tooltip title="active">
                       <Icon
-                        sx={{ width: "3rem", height: "2rem", color: "green" }}
+                        sx={{ width: "2rem", height: "2rem", color: "green" }}
                       >
-                        <ToggleOn />
+                        <ToggleOn sx={{ fontSize: "2rem" }} />
                       </Icon>
                     </Tooltip>
                   ) : (
                     <Tooltip title="inactive">
                       <Icon
-                        sx={{ width: "3rem", height: "2rem", color: "red" }}
+                        sx={{ width: "2rem", height: "2rem", color: "red" }}
                       >
-                        <ToggleOff />
+                        <ToggleOff sx={{ fontSize: "2rem" }} />
                       </Icon>
                     </Tooltip>
                   )}
                 </TableCell>
                 <TableCell
                   style={{ width: 160 }}
-                  sx={{ display: "flex", justifyContent: "left", gap: "2rem" }}
+                  sx={{ display: "flex", justifyContent: "center", gap: "0.5rem" }}
                   align="center"
                 >
                   <Tooltip title="edit">

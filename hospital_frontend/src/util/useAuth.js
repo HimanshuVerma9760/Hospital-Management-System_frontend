@@ -14,15 +14,15 @@ export default async function useAuth() {
     if (response.ok) {
       const result = await response.json();
       if (result.response) {
-        return { response: true, role: result.role };
+        return { response: true, role: result.role, id: result.id };
       } else {
-        return { response: false, role: null };
+        return { response: false, role: null, id: null };
       }
     } else {
-      return { response: false, role: null };
+      return { response: false, role: null, id: null };
     }
   } catch (error) {
     console.log(error);
-    return { response: false, role: null };
+    return { response: false, role: null, id: null };
   }
 }

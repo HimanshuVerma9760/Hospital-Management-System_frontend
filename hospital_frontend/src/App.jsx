@@ -20,6 +20,11 @@ import EditHospital from "./Components/Users/Hospitals/EditHospital";
 import Orders from "./Components/Users/Appointments/Orders";
 import Forms from "./Components/Users/Appointments/FormBuilder/Forms";
 import CreateForm from "./Components/Users/Appointments/FormBuilder/CreateForm";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "@fontsource/roboto/300.css";
+import "@fontsource/roboto/400.css";
+import "@fontsource/roboto/500.css";
+import "@fontsource/roboto/700.css";
 // import Forms from "./Components/Users/Appointments/FormBuilder/Forms";
 
 export default function App() {

@@ -45,6 +45,7 @@ import {
 import { Link, useNavigate } from "react-router";
 import ModalContent from "../../Modal/ModalContent";
 import { deepOrange, indigo } from "@mui/material/colors";
+import toast, { Toaster } from "react-hot-toast";
 const Conn = import.meta.env.VITE_CONN_URI;
 
 export default function Doctors() {
@@ -53,7 +54,6 @@ export default function Doctors() {
   const [isVerified, setIsVerified] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [fetchedDoctors, setFetchedDoctors] = useState([]);
-  const [op, setOp] = useState(false);
   const [showPrompt, setShowPrompt] = useState({
     state: false,
     type: "",
@@ -65,9 +65,10 @@ export default function Doctors() {
   const reqId = React.useRef();
   useEffect(() => {
     if (localStorage.getItem("op")) {
-      setOp(true);
+      notify();
+      localStorage.removeItem("op");
     }
-  }, [op]);
+  }, []);
 
   function TablePaginationActions(props) {
     const theme = useTheme();
@@ -256,11 +257,14 @@ export default function Doctors() {
     getSpecialization();
   }, []);
 
+  function notify() {
+    toast.success(localStorage.getItem("op"));
+  }
   if (isLoading) {
     return (
       <>
         <Skeleton variant="rectangular" height={100} />
-        <Skeleton variant="text" height={80} width={300} />
+        <Skeleton variant="text" height={80} width={100} />
         <Skeleton variant="rectangular" height={100} />
       </>
     );
@@ -286,15 +290,9 @@ export default function Doctors() {
       />
     );
   }
-  if (localStorage.getItem("op")) {
-    setTimeout(() => {
-      localStorage.removeItem("op");
-      setOp(false);
-    }, 2000);
-  }
   return (
     <>
-      <Typography variant="h4" align="center">
+      <Typography variant="h4" fontWeight="bold" align="center">
         Doctors
       </Typography>
       <Grid2 display="flex" justifyContent="end" gap="1rem" alignItems="center">
@@ -343,7 +341,7 @@ export default function Doctors() {
       {rows.length === 0 && (
         <Alert severity="info">No doctors found for the selected filter</Alert>
       )}
-      {op && <Alert severity="success">{localStorage.getItem("op")}</Alert>}
+      <Toaster />
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 500 }} aria-label="custom pagination table">
           <TableHead>
@@ -351,7 +349,7 @@ export default function Doctors() {
               <TableCell>
                 <Typography
                   variant="h6"
-                  color="green"
+                  color="black"
                   sx={{ fontSize: "1.2rem" }}
                 >
                   Id
@@ -360,7 +358,7 @@ export default function Doctors() {
               <TableCell>
                 <Typography
                   variant="h6"
-                  color="green"
+                  color="black"
                   sx={{ fontSize: "1.2rem" }}
                 >
                   Name
@@ -369,7 +367,7 @@ export default function Doctors() {
               <TableCell align="center">
                 <Typography
                   variant="h6"
-                  color="green"
+                  color="black"
                   sx={{ fontSize: "1.2rem" }}
                 >
                   Specialization
@@ -378,7 +376,7 @@ export default function Doctors() {
               <TableCell align="center">
                 <Typography
                   variant="h6"
-                  color="green"
+                  color="black"
                   sx={{ fontSize: "1.2rem" }}
                 >
                   City
@@ -387,7 +385,7 @@ export default function Doctors() {
               <TableCell align="center">
                 <Typography
                   variant="h6"
-                  color="green"
+                  color="black"
                   sx={{ fontSize: "1.2rem" }}
                 >
                   Hospital
@@ -396,7 +394,7 @@ export default function Doctors() {
               <TableCell align="center">
                 <Typography
                   variant="h6"
-                  color="green"
+                  color="black"
                   sx={{ fontSize: "1.2rem" }}
                 >
                   Status
@@ -405,7 +403,7 @@ export default function Doctors() {
               <TableCell align="center">
                 <Typography
                   variant="h6"
-                  color="green"
+                  color="black"
                   sx={{ fontSize: "1.2rem" }}
                 >
                   Action
@@ -434,18 +432,14 @@ export default function Doctors() {
                 <TableCell style={{ width: 160 }} align="center">
                   {row.status ? (
                     <Tooltip title="active">
-                      <Icon
-                        sx={{ height: "2rem", width: "2rem", color: "green" }}
-                      >
-                        <ToggleOn />
+                      <Icon sx={{height:"2rem", width:"2rem", color: "green" }}>
+                        <ToggleOn sx={{ fontSize: "2rem" }} />
                       </Icon>
                     </Tooltip>
                   ) : (
                     <Tooltip title="inactive">
-                      <Icon
-                        sx={{ height: "2rem", width: "2rem", color: "red" }}
-                      >
-                        <ToggleOff />
+                      <Icon sx={{height:"2rem", width:"2rem", color: "red" }}>
+                        <ToggleOff sx={{ fontSize: "2rem" }} />
                       </Icon>
                     </Tooltip>
                   )}
@@ -453,7 +447,11 @@ export default function Doctors() {
                 <TableCell
                   style={{ width: 160 }}
                   align="center"
-                  sx={{ display: "flex", justifyContent: "left", gap: "2rem" }}
+                  sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    gap: "0.5rem",
+                  }}
                 >
                   <Tooltip title="Edit">
                     <IconButton

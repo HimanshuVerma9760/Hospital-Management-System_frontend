@@ -16,6 +16,7 @@ import { Form, useNavigate } from "react-router";
 import { motion } from "motion/react";
 import useAuth from "../util/useAuth";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
+import toast, { Toaster } from "react-hot-toast";
 const Conn = import.meta.env.VITE_CONN_URI;
 
 export default function Login() {
@@ -25,7 +26,6 @@ export default function Login() {
   const [formError, setFormError] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
-  const [responseError, setResponseError] = useState(false);
   const [passwordIsVisible, setPasswordIsVisible] = useState(false);
 
   const [error, setError] = useState({
@@ -47,28 +47,46 @@ export default function Login() {
   }, []);
   async function onSubmitHandler(event) {
     event.preventDefault();
+    if (password.trim().length === 0) {
+      setError((prevState) => ({
+        ...prevState,
+        passwordError: {
+          state: true,
+          message: "Invalid entry",
+        },
+      }));
+      return;
+    }
     setIsLoading(true);
-
     const formData = {
       email,
       password,
     };
-    const response = await fetch(`${Conn}/login`, {
-      method: "post",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(formData),
-    });
-    if (response.ok) {
-      const result = await response.json();
-      localStorage.setItem("token", result.token);
-      navigate("/users/doctors");
-    } else {
-      setResponseError(true);
+    try {
+      const response = await fetch(`${Conn}/login`, {
+        method: "post",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+      if (response.ok) {
+        const result = await response.json();
+        localStorage.setItem("token", result.token);
+        navigate("/users/doctors");
+      } else {
+        notify("Invalid Credentials!");
+      }
+      setIsLoading(false);
+    } catch (error) {
+      console.log("error: ", error);
+      notify("Server is down, try again later!");
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }
+  const notify = (response) => {
+    toast.error(response);
+  };
   function isValidEmail(email) {
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     return emailRegex.test(email);
@@ -110,7 +128,6 @@ export default function Login() {
     const id = event.target.id;
     const value = event.target.value;
     setFormError(false);
-    setResponseError(false);
     switch (id) {
       case "email":
         setEmail(value);
@@ -156,6 +173,7 @@ export default function Login() {
   }
   return (
     <>
+      <Toaster />
       <motion.div
         initial={{ opacity: 0, y: -80 }}
         animate={{ opacity: 1, y: 0 }}
@@ -178,20 +196,20 @@ export default function Login() {
                 boxShadow: "0px 1px 2px 0px cyan",
               }}
             >
-              <Grid2 alignSelf="center">
-                <Typography variant="h3" color="black">
+              <Grid2>
+                <Typography variant="h3" color="black" align="center">
                   Login
                 </Typography>
                 <Typography
                   variant="caption"
-                  sx={{ paddingLeft: "5px" }}
+                  sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    marginTop: "1.5rem",
+                  }}
                   color="red"
                 >
-                  {isLoading ? (
-                    <CircularProgress />
-                  ) : (
-                    responseError && "Invalid Credentials!"
-                  )}
+                  {isLoading && <CircularProgress />}
                 </Typography>
               </Grid2>
               <Grid2
@@ -203,6 +221,7 @@ export default function Login() {
                   type="text"
                   name="email"
                   label="Enter email"
+                  autoFocus={true}
                   value={email}
                   onChange={onChangeHandler}
                   error={error.emailError.state}

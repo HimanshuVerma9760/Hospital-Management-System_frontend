@@ -16,6 +16,7 @@ import {
 import { useEffect, useState } from "react";
 import { Form } from "react-router";
 import useAuth from "../../../util/useAuth";
+import toast, { Toaster } from "react-hot-toast";
 const Conn = import.meta.env.VITE_CONN_URI;
 
 export default function AddPatient() {
@@ -30,7 +31,6 @@ export default function AddPatient() {
   const [city, setCity] = useState("");
   const [hospital, setHospital] = useState("");
   const [doctor, setDoctor] = useState("");
-  const [message, setMessage] = useState("");
   const [diseases, setDiseases] = useState([]);
   async function fetchCities() {
     const response = await fetch(`${Conn}/cities`);
@@ -250,29 +250,43 @@ export default function AddPatient() {
       doctor_id: doctor,
     };
 
-    const response = await fetch(`${Conn}/patients/add`, {
-      method: "post",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(formData),
-    });
-    if (response) {
-      const result = await response.json();
-      setSubmissionProgress(false);
-      if (response.ok) {
-        setMessage(result.message);
-        setName("");
-        setDisease("");
-        setCity("");
-        setDoctor("");
-        setHospital("");
-      } else {
-        setMessage(result.message[0]);
+    try {
+      const response = await fetch(`${Conn}/patients/add`, {
+        method: "post",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+      if (response) {
+        const result = await response.json();
+        setSubmissionProgress(false);
+        if (response.ok) {
+          notify("success");
+          setName("");
+          setDisease("");
+          setCity("");
+          setDoctor("");
+          setHospital("");
+        } else {
+          if (response.status === "400") {
+            notify(result.message[0]);
+          } else {
+            notify(result.message);
+          }
+        }
       }
+    } catch (error) {
+      console.log("error: ", error);
+      notify("Server is down, try again later!");
+      setSubmissionProgress(false);
     }
   }
-
+  const notify = (response) => {
+    response === "success"
+      ? toast.success("Successfully added patient")
+      : toast.error(response);
+  };
   if (isLoading) {
     return (
       <Grid2
@@ -315,8 +329,9 @@ export default function AddPatient() {
           borderRadius: "1rem",
         }}
       >
-        <Grid2 sx={{paddingTop:"1rem"}}>
-          <Typography variant="h5" sx={{fontSize:"1.5rem"}} align="center">
+        <Toaster />
+        <Grid2 sx={{ paddingTop: "1rem" }}>
+          <Typography variant="h5" sx={{ fontSize: "1.5rem" }} align="center">
             Add Patient
           </Typography>
           <Typography
@@ -326,12 +341,10 @@ export default function AddPatient() {
             justifyContent="center"
             color="red"
           >
-            {submissionProgress ? (
+            {submissionProgress && (
               <Grid2 display="flex" justifyContent="center">
                 <CircularProgress />
               </Grid2>
-            ) : (
-              message
             )}
           </Typography>
         </Grid2>

@@ -1,7 +1,18 @@
 import React, { useEffect, useRef, useState } from "react";
 import Portal from "./Portal";
-import { Box, Button, Grid2, TextField, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Grid2,
+  IconButton,
+  ImageListItem,
+  Input,
+  TextField,
+  Typography,
+} from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
+import toast, { Toaster } from "react-hot-toast";
+import { Cancel, Upload } from "@mui/icons-material";
 const Conn = import.meta.env.VITE_CONN_URI;
 
 const ModalContent = ({ isOpen, onClose, message, btn, type, metaData }) => {
@@ -9,6 +20,9 @@ const ModalContent = ({ isOpen, onClose, message, btn, type, metaData }) => {
 
   const [formTitle, setFormTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [profilePicture, setProfilePicture] = useState(null);
+  const [pickedImage, setPickedImage] = useState(null);
+  const pickImage = useRef();
   const [error, setError] = useState({
     titleError: {
       state: false,
@@ -20,6 +34,10 @@ const ModalContent = ({ isOpen, onClose, message, btn, type, metaData }) => {
     },
   });
 
+  function pickImageClickHandler() {
+    console.log("clicked!!");
+    pickImage.current.click();
+  }
   async function fetchFormData() {
     try {
       const response = await fetch(`${Conn}/form/get/${metaData.id}`);
@@ -101,7 +119,18 @@ const ModalContent = ({ isOpen, onClose, message, btn, type, metaData }) => {
         break;
     }
   }
-
+  function imageChangeHandler(event) {
+    const file = event.target.files[0];
+    if (!file) {
+      return;
+    }
+    setProfilePicture(file);
+    const fileReader = new FileReader();
+    fileReader.onload = () => {
+      setPickedImage(fileReader.result);
+    };
+    fileReader.readAsDataURL(file);
+  }
   async function deleteHandler() {
     const response = await fetch(`${Conn}/doctors/soft/${message.id}}`, {
       method: "delete",
@@ -151,8 +180,31 @@ const ModalContent = ({ isOpen, onClose, message, btn, type, metaData }) => {
     }
     onClose();
   }
-  // const funcType=useRef();
-
+  async function uploadHandler() {
+    try {
+      const formData = new FormData();
+      formData.append("profilePicture", profilePicture);
+      const response = await fetch(`${Conn}/upload/dp`, {
+        method: "post",
+        headers: {
+          authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: formData,
+      });
+      if (response.ok) {
+        toast.success("Successfully Updated Profile Picture");
+        onClose();
+      } else {
+        const result = await response.json();
+        console.log(result.message);
+        toast.error("Error occurred while updating profile picture!");
+        onClose();
+      }
+    } catch (error) {
+      toast.error("Error occured at backend!");
+      onClose();
+    }
+  }
   async function editFormHandler() {
     const editFormData = {
       title: formTitle,
@@ -229,14 +281,21 @@ const ModalContent = ({ isOpen, onClose, message, btn, type, metaData }) => {
   }
   return (
     <Portal onClose={onClose}>
+      <Grid2 sx={{ display: "flex", justifyContent: "right" }}>
+        <IconButton sx={{ margin: 0, padding: 0 }} onClick={onClose}>
+          <Cancel />
+        </IconButton>
+      </Grid2>
       <Box
         sx={{
           display: "flex",
           flexDirection: "column",
-          marginTop: "1rem",
           justifyContent: "center",
+          padding: "2rem",
+          gap: "0.5rem",
         }}
       >
+        <Toaster />
         <Typography variant="h4" sx={{ marginBottom: "10px" }}>
           {message.message}
         </Typography>
@@ -248,21 +307,29 @@ const ModalContent = ({ isOpen, onClose, message, btn, type, metaData }) => {
           {message.caption}
         </Typography>
         {!type ? (
-          <Button>
-            <Link to={btn.loc} style={{ textDecoration: "none" }}>
+          <Button variant="contained" size="small">
+            <Link
+              to={btn.loc}
+              style={{ textDecoration: "none", color: "white" }}
+            >
               {btn.text}
             </Link>
           </Button>
         ) : type === "info" ? (
-          <Button onClick={() => onClose()}>Close</Button>
+          <Button variant="contained" size="small" onClick={() => onClose()}>
+            Close
+          </Button>
         ) : type === "form" || type === "editForm" ? (
-          <Grid2 sx={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          <Grid2
+            sx={{ display: "flex", flexDirection: "column", gap: "1.3rem" }}
+          >
             <Grid2>
               <TextField
                 label={error.titleError.message || "Form Title"}
                 autoFocus={true}
                 id="title"
                 name="title"
+                size="small"
                 sx={{ width: "12.8rem" }}
                 error={error.titleError.state}
                 value={formTitle}
@@ -275,6 +342,7 @@ const ModalContent = ({ isOpen, onClose, message, btn, type, metaData }) => {
                 label={error.descriptionError.message || "Description"}
                 id="description"
                 name="description"
+                size="small"
                 rows={3}
                 multiline
                 error={error.descriptionError.state}
@@ -301,6 +369,55 @@ const ModalContent = ({ isOpen, onClose, message, btn, type, metaData }) => {
               </Button>
             </Grid2>
           </Grid2>
+        ) : type === "fileUpload" ? (
+          <>
+            <Grid2
+              sx={{ display: "flex", flexDirection: "column", gap: "2rem" }}
+            >
+              <Grid2>
+                <input
+                  ref={pickImage}
+                  type="file"
+                  name="profilePicture"
+                  id="profilePicture"
+                  onChange={imageChangeHandler}
+                  style={{ display: "none" }}
+                />
+                <ImageListItem
+                  sx={{ height: "10rem", width: "10rem", margin: "auto" }}
+                >
+                  {profilePicture ? (
+                    <img src={pickedImage} alt="User's profile picture" fill />
+                  ) : (
+                    <p>No image selected</p>
+                  )}
+                </ImageListItem>
+                <Button
+                  variant="outlined"
+                  onClick={pickImageClickHandler}
+                  sx={{ marginTop: "1rem" }}
+                >
+                  <Upload sx={{ marginRight: "1rem" }} /> Upload image
+                </Button>
+              </Grid2>
+              <Grid2 display="flex" gap="1rem" justifyContent="center">
+                <Button
+                  size="small"
+                  variant="contained"
+                  onClick={() => uploadHandler()}
+                >
+                  Submit
+                </Button>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  onClick={() => onClose()}
+                >
+                  Cancel
+                </Button>
+              </Grid2>
+            </Grid2>
+          </>
         ) : (
           <Grid2
             display="flex"

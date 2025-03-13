@@ -32,7 +32,7 @@ import FirstPageIcon from "@mui/icons-material/FirstPage";
 import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import LastPageIcon from "@mui/icons-material/LastPage";
-import { Add, Edit, Preview } from "@mui/icons-material";
+import { Add, Edit, Info, InfoOutlined, Preview } from "@mui/icons-material";
 import { Link } from "react-router";
 import { indigo } from "@mui/material/colors";
 const Conn = import.meta.env.VITE_CONN_URI;
@@ -213,8 +213,8 @@ export default function Forms() {
           metaData={{ id: reqFormId.current }}
           onClose={onCloseHandler}
           message={{
-            message: "Add the Information",
-            caption: "Add information you want to change",
+            message: "Edit Information",
+            caption: "Edit information you want to change",
           }}
         />
       );
@@ -223,8 +223,8 @@ export default function Forms() {
   return (
     <>
       <Grid2>
-        <Typography variant="h4" align="center">
-          Forms
+        <Typography variant="h4" fontWeight="bold" align="center">
+          Forms Management
         </Typography>
         <Grid2 display="flex" justifyContent="right" marginBottom="0.5rem">
           <Button
@@ -254,7 +254,7 @@ export default function Forms() {
                 <Typography
                   variant="h6"
                   sx={{ fontSize: "1.2rem" }}
-                  color="green"
+                  color="black"
                 >
                   Id
                 </Typography>
@@ -263,7 +263,7 @@ export default function Forms() {
                 <Typography
                   variant="h6"
                   sx={{ fontSize: "1.2rem" }}
-                  color="green"
+                  color="black"
                 >
                   Title
                 </Typography>
@@ -272,7 +272,7 @@ export default function Forms() {
                 <Typography
                   variant="h6"
                   sx={{ fontSize: "1.2rem" }}
-                  color="green"
+                  color="black"
                 >
                   Description
                 </Typography>
@@ -281,7 +281,7 @@ export default function Forms() {
                 <Typography
                   variant="h6"
                   sx={{ fontSize: "1.2rem" }}
-                  color="green"
+                  color="black"
                 >
                   Created On
                 </Typography>
@@ -290,7 +290,7 @@ export default function Forms() {
                 <Typography
                   variant="h6"
                   sx={{ fontSize: "1.2rem" }}
-                  color="green"
+                  color="black"
                 >
                   Action
                 </Typography>
@@ -310,7 +310,7 @@ export default function Forms() {
                 </TableCell>
                 <TableCell style={{ width: 100 }} align="center">
                   <Grid2
-                    sx={{ display: "flex", justifyContent: "space-around" }}
+                    sx={{ display: "flex", gap:"0.5rem", justifyContent:"center"}}
                   >
                     <Tooltip title="Edit">
                       <IconButton
@@ -335,7 +335,7 @@ export default function Forms() {
                         }}
                         sx={{ color: indigo[300] }}
                       >
-                        <Preview />
+                        <InfoOutlined />
                       </IconButton>
                     </Tooltip>
                   </Grid2>

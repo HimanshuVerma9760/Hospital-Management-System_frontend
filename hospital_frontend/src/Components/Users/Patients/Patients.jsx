@@ -185,7 +185,7 @@ export default function Patients() {
 
   return (
     <>
-      <Typography variant="h4" align="center">
+      <Typography variant="h4" fontWeight="bold" align="center">
         Patients
       </Typography>
       <Grid2 display="flex" justifyContent="end" gap="1rem" alignItems="center">
@@ -242,7 +242,7 @@ export default function Patients() {
                 <Typography
                   variant="h6"
                   sx={{ fontSize: "1.2rem" }}
-                  color="green"
+                  color="black"
                 >
                   Id
                 </Typography>
@@ -251,7 +251,7 @@ export default function Patients() {
                 <Typography
                   variant="h6"
                   sx={{ fontSize: "1.2rem" }}
-                  color="green"
+                  color="black"
                 >
                   Name
                 </Typography>
@@ -260,7 +260,7 @@ export default function Patients() {
                 <Typography
                   variant="h6"
                   sx={{ fontSize: "1.2rem" }}
-                  color="green"
+                  color="black"
                 >
                   City
                 </Typography>
@@ -269,7 +269,7 @@ export default function Patients() {
                 <Typography
                   variant="h6"
                   sx={{ fontSize: "1.2rem" }}
-                  color="green"
+                  color="black"
                 >
                   Hospital
                 </Typography>
@@ -278,7 +278,7 @@ export default function Patients() {
                 <Typography
                   variant="h6"
                   sx={{ fontSize: "1.2rem" }}
-                  color="green"
+                  color="black"
                 >
                   Disease
                 </Typography>
@@ -287,7 +287,7 @@ export default function Patients() {
                 <Typography
                   variant="h6"
                   sx={{ fontSize: "1.2rem" }}
-                  color="green"
+                  color="black"
                 >
                   Doctor
                 </Typography>

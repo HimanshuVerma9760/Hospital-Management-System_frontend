@@ -1,4 +1,12 @@
-import { Alert, Box, Button, Grid2, Input, Typography } from "@mui/material";
+import {
+  Alert,
+  Box,
+  Button,
+  Grid2,
+  Input,
+  Skeleton,
+  Typography,
+} from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { ReactFormBuilder, ReactFormGenerator } from "react-form-builder2";
 import "react-form-builder2/dist/app.css";
@@ -13,6 +21,7 @@ export default function CreateForm() {
   const formDescription = useRef();
   const [viewMode, setViewMode] = useState(false);
   const [message, setMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
   formTitle.current = localStorage.getItem("title");
@@ -21,6 +30,13 @@ export default function CreateForm() {
     setFormData(data.task_data);
   }
 
+  useEffect(() => {
+    if (!localStorage.getItem("title")) {
+      navigate("/users/forms");
+    } else {
+      setIsLoading(false);
+    }
+  }, []);
   useEffect(() => {
     const interval = setInterval(() => {
       const container = document.querySelector(
@@ -64,6 +80,15 @@ export default function CreateForm() {
     if (response.ok) {
       navigate("/users/forms");
     }
+  }
+  if (isLoading) {
+    return (
+      <>
+        <Grid2 display="flex" justifyContent="center">
+          <Skeleton variant="rectangular" height={300} width={300} />
+        </Grid2>
+      </>
+    );
   }
   return (
     <Box p={3}>

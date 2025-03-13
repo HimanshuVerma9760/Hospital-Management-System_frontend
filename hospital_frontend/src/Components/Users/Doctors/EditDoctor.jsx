@@ -17,6 +17,7 @@ import { useEffect, useRef, useState } from "react";
 import { Form, useLocation, useNavigate } from "react-router";
 import useAuth from "../../../util/useAuth";
 import ModalContent from "../../Modal/ModalContent";
+import toast, { Toaster } from "react-hot-toast";
 const Conn = import.meta.env.VITE_CONN_URI;
 
 export default function EditDoctor() {
@@ -32,14 +33,7 @@ export default function EditDoctor() {
   const [hospitals, setHospitals] = useState([]);
   const [message, setMessage] = useState("");
   const [specializations, setSpecializations] = useState([]);
-  const [showPrompt, setShowPrompt] = useState({
-    state: false,
-    type: "",
-    message: {
-      message: "",
-      caption: "",
-    },
-  });
+  const navigate = useNavigate();
 
   const reqId = useRef();
 
@@ -69,13 +63,7 @@ export default function EditDoctor() {
     }
     const id = localStorage.getItem("id");
     if (!id) {
-      setShowPrompt({
-        state: true,
-        message: {
-          message: "No doctor id found",
-          caption: "Redirecting to doctor page",
-        },
-      });
+      navigate("/users/doctors");
       return;
     }
     reqId.current = localStorage.getItem("id");
@@ -281,6 +269,7 @@ export default function EditDoctor() {
     }
   }
   const nav = useNavigate();
+
   async function onSubmitHandler(event) {
     event.preventDefault();
     setSubmissionProgress(true);
@@ -291,28 +280,36 @@ export default function EditDoctor() {
       hospital_id: hospital,
       fees: Number(fees),
     };
-    const response = await fetch(`${Conn}/doctors/update/${reqId.current}`, {
-      method: "put",
-      headers: {
-        "Content-Type": "application/json",
-        authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-      body: JSON.stringify(formData),
-    });
-    if (response) {
-      const result = await response.json();
-      setSubmissionProgress(false);
-      if (response.ok) {
-        localStorage.setItem("op", result.message);
-        nav("/users/doctors");
-      } else if (response.status !== 400) {
-        setMessage(result.message);
-      } else {
-        setMessage(result.message[0]);
+    try {
+      const response = await fetch(`${Conn}/doctors/update/${reqId.current}`, {
+        method: "put",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify(formData),
+      });
+      if (response) {
+        const result = await response.json();
+        setSubmissionProgress(false);
+        if (response.ok) {
+          localStorage.setItem("op", result.message);
+          nav("/users/doctors");
+        } else if (response.status === "400") {
+          notify(result.message[0]);
+        } else {
+          notify(result.message);
+        }
       }
+    } catch (error) {
+      console.log("error: ", error);
+      notify("Server is down, try again later!");
+      setSubmissionProgress(false);
     }
   }
-
+  const notify = (response) => {
+    toast.error(response);
+  };
   if (isLoading) {
     return (
       <Grid2
@@ -344,29 +341,6 @@ export default function EditDoctor() {
       </Alert>
     );
   }
-  function onCloseHandler() {
-    setShowPrompt(prevState=>({
-      ...prevState,
-      state:false,
-      message:{
-        message:"",
-        caption:""
-      }
-    }));
-  }
-  if (showPrompt.state) {
-    return (
-      <ModalContent
-        btn={{ text: "Doctor page", loc: "/users/doctors" }}
-        isOpen={showPrompt.state}
-        onClose={onCloseHandler}
-        message={{
-          message: showPrompt.message.message,
-          caption: showPrompt.message.caption,
-        }}
-      />
-    );
-  }
   localStorage.removeItem("id");
   return (
     <>
@@ -379,6 +353,7 @@ export default function EditDoctor() {
           borderRadius: "1rem",
         }}
       >
+        <Toaster />
         <Grid2 sx={{ paddingTop: "1rem" }}>
           <Typography variant="h5" sx={{ fontSize: "1.5rem" }} align="center">
             Edit Doctor

@@ -242,7 +242,7 @@ export default function Appointments() {
   }
   return (
     <>
-      <Typography variant="h4" align="center">
+      <Typography variant="h4" fontWeight="bold" align="center">
         Appointments
       </Typography>
       <Grid2 display="flex" justifyContent="end" gap="1rem" alignItems="center">
@@ -275,7 +275,7 @@ export default function Appointments() {
                 <Typography
                   variant="h6"
                   sx={{ fontSize: "1rem" }}
-                  color="green"
+                  color="black"
                 >
                   Id
                 </Typography>
@@ -284,7 +284,7 @@ export default function Appointments() {
                 <Typography
                   variant="h6"
                   sx={{ fontSize: "1rem" }}
-                  color="green"
+                  color="black"
                 >
                   Unique Appointment Number
                 </Typography>
@@ -293,7 +293,7 @@ export default function Appointments() {
                 <Typography
                   variant="h6"
                   sx={{ fontSize: "1rem" }}
-                  color="green"
+                  color="black"
                 >
                   Name
                 </Typography>
@@ -302,7 +302,7 @@ export default function Appointments() {
                 <Typography
                   variant="h6"
                   sx={{ fontSize: "1rem" }}
-                  color="green"
+                  color="black"
                 >
                   Date
                 </Typography>
@@ -311,7 +311,7 @@ export default function Appointments() {
                 <Typography
                   variant="h6"
                   sx={{ fontSize: "1rem" }}
-                  color="green"
+                  color="black"
                 >
                   Time
                 </Typography>
@@ -320,7 +320,7 @@ export default function Appointments() {
                 <Typography
                   variant="h6"
                   sx={{ fontSize: "1rem" }}
-                  color="green"
+                  color="black"
                 >
                   Status
                 </Typography>
@@ -329,7 +329,7 @@ export default function Appointments() {
                 <Typography
                   variant="h6"
                   sx={{ fontSize: "1rem" }}
-                  color="green"
+                  color="black"
                 >
                   Payment Status
                 </Typography>

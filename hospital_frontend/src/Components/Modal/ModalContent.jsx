@@ -12,7 +12,7 @@ import {
 } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
-import { Cancel, Upload } from "@mui/icons-material";
+import { Cancel, Image, Upload } from "@mui/icons-material";
 const Conn = import.meta.env.VITE_CONN_URI;
 
 const ModalContent = ({ isOpen, onClose, message, btn, type, metaData }) => {
@@ -33,11 +33,6 @@ const ModalContent = ({ isOpen, onClose, message, btn, type, metaData }) => {
       message: "",
     },
   });
-
-  function pickImageClickHandler() {
-    console.log("clicked!!");
-    pickImage.current.click();
-  }
   async function fetchFormData() {
     try {
       const response = await fetch(`${Conn}/form/get/${metaData.id}`);
@@ -374,46 +369,73 @@ const ModalContent = ({ isOpen, onClose, message, btn, type, metaData }) => {
             <Grid2
               sx={{ display: "flex", flexDirection: "column", gap: "2rem" }}
             >
-              <Grid2>
+              <Grid2 sx={{ textAlign: "center" }}>
+                <label htmlFor="profilePicture">
+                  <ImageListItem
+                    sx={{
+                      height: "20rem",
+                      width: "10rem",
+                      margin: "auto",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      border: "2px dashed gray",
+                      cursor: "pointer",
+                      borderRadius: "5px",
+                      overflow: "hidden",
+                      backgroundColor: profilePicture
+                        ? "transparent"
+                        : "#f0f0f0",
+                      color: "#777",
+                    }}
+                  >
+                    {profilePicture ? (
+                      <img
+                        src={pickedImage}
+                        alt="User's profile"
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                        }}
+                      />
+                    ) : (
+                      <Typography
+                        component="p"
+                        sx={{
+                          color: "gray",
+                          paddingTop: "3rem",
+                          paddingBottom: "3rem",
+                          display:"flex",
+                          flexDirection:"column",
+                          gap:"0.5rem"
+                        }}
+                      >
+                        <Image sx={{alignSelf:"center"}}/>
+                        Click to upload
+                      </Typography>
+                    )}
+                  </ImageListItem>
+                </label>
+
                 <input
                   ref={pickImage}
                   type="file"
                   name="profilePicture"
                   id="profilePicture"
+                  accept="image/*"
                   onChange={imageChangeHandler}
                   style={{ display: "none" }}
                 />
-                <ImageListItem
-                  sx={{ height: "10rem", width: "10rem", margin: "auto" }}
-                >
-                  {profilePicture ? (
-                    <img src={pickedImage} alt="User's profile picture" fill />
-                  ) : (
-                    <p>No image selected</p>
-                  )}
-                </ImageListItem>
-                <Button
-                  variant="outlined"
-                  onClick={pickImageClickHandler}
-                  sx={{ marginTop: "1rem" }}
-                >
-                  <Upload sx={{ marginRight: "1rem" }} /> Upload image
-                </Button>
               </Grid2>
+
               <Grid2 display="flex" gap="1rem" justifyContent="center">
                 <Button
                   size="small"
                   variant="contained"
-                  onClick={() => uploadHandler()}
+                  onClick={uploadHandler}
                 >
                   Submit
-                </Button>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  onClick={() => onClose()}
-                >
-                  Cancel
                 </Button>
               </Grid2>
             </Grid2>

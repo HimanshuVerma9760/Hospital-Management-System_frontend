@@ -6,6 +6,8 @@ import {
   FormControl,
   Grid2,
   Icon,
+  Input,
+  InputAdornment,
   InputLabel,
   ListItemButton,
   ListItemIcon,
@@ -14,6 +16,7 @@ import {
   Select,
   Skeleton,
   TableHead,
+  TextField,
   Tooltip,
   Typography,
 } from "@mui/material";
@@ -39,6 +42,7 @@ import {
   Delete,
   Edit,
   Restore,
+  Search,
   ToggleOff,
   ToggleOn,
 } from "@mui/icons-material";
@@ -46,6 +50,7 @@ import { Link, useNavigate } from "react-router";
 import ModalContent from "../../Modal/ModalContent";
 import { deepOrange, indigo } from "@mui/material/colors";
 import toast, { Toaster } from "react-hot-toast";
+import { debounce } from "lodash";
 const Conn = import.meta.env.VITE_CONN_URI;
 
 export default function Doctors() {
@@ -165,6 +170,34 @@ export default function Doctors() {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
+  const [keyword, setKeyword] = useState("");
+  const debouncedFetchData = debounce(() => {
+    console.log("executed debounce");
+    getData();
+  }, 500);
+  async function getData() {
+    try {
+      const response = await fetch(
+        `${Conn}/doctors/get-doctors/?page=${
+          page + 1
+        }&limit=${rowsPerPage}&specialization=${specialization}&keyword=${keyword}`,
+        {
+          headers: {
+            authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      if (response.ok) {
+        const result = await response.json();
+        setFetchedDoctors(result.result);
+        setTotalCount(result.totalRecords);
+        setIsLoading(false);
+      }
+    } catch (error) {
+      console.error("Fetch error:", error);
+    }
+  }
+
   useEffect(() => {
     setIsLoading(true);
     async function checkAuth() {
@@ -177,30 +210,9 @@ export default function Doctors() {
       ) {
         setIsVerified(false);
       } else {
-        try {
-          const response = await fetch(
-            `${Conn}/doctors/get-doctors/?page=${
-              page + 1
-            }&limit=${rowsPerPage}&specialization=${specialization}`,
-            {
-              headers: {
-                authorization: `Bearer ${localStorage.getItem("token")}`,
-              },
-            }
-          );
-
-          if (response.ok) {
-            const result = await response.json();
-            setFetchedDoctors(result.result);
-            setTotalCount(result.totalRecords);
-          } else {
-            console.error("Error fetching doctors:", result);
-          }
-        } catch (error) {
-          console.error("Fetch error:", error);
-        }
+        getData();
       }
-      setIsLoading(false);
+      // setIsLoading(false);
     }
     checkAuth();
   }, [page, rowsPerPage, showPrompt.state, specialization]);
@@ -292,51 +304,84 @@ export default function Doctors() {
   }
   return (
     <>
-      <Typography variant="h4" fontWeight="bold" align="center">
+      <Typography
+        variant="h4"
+        fontWeight="bold"
+        align="center"
+        sx={{ marginBottom: "1.5rem" }}
+      >
         Doctors
       </Typography>
-      <Grid2 display="flex" justifyContent="end" gap="1rem" alignItems="center">
-        <FormControl sx={{ minWidth: 150 }}>
-          <Select
-            id="specialization"
-            name="specialization"
-            value={specialization}
-            onChange={(e) => setSpecialization(e.target.value)}
-            sx={{ marginBottom: "5px", width: "13rem" }}
-            onClick={() => setPage(0)}
-            size="small"
-          >
-            <MenuItem id="all" value={0}>
-              Select Specialization
-            </MenuItem>
-            {specializations.map((eachSpecialization) => (
-              <MenuItem
-                id={eachSpecialization.name}
-                key={eachSpecialization.id}
-                value={eachSpecialization.id}
-              >
-                {eachSpecialization.name}
+      <Grid2
+        display="flex"
+        justifyContent="space-between"
+        gap="10rem"
+        alignItems="center"
+      >
+        <TextField
+          variant="outlined"
+          size="small"
+          type="text"
+          placeholder="Search here"
+          value={keyword}
+          onChange={(e) => {
+            setKeyword(e.target.value);
+            debouncedFetchData();
+          }}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton size="small">
+                  <Search sx={{ fontSize: "1.5rem" }} />
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+          sx={{ width: "30rem" }}
+        />
+        <Grid2 sx={{ display: "flex", gap: "1rem" }}>
+          <FormControl sx={{ minWidth: 150 }}>
+            <Select
+              id="specialization"
+              name="specialization"
+              value={specialization}
+              onChange={(e) => setSpecialization(e.target.value)}
+              sx={{ marginBottom: "5px", width: "13rem" }}
+              onClick={() => setPage(0)}
+              size="small"
+            >
+              <MenuItem id="all" value={0}>
+                Select Specialization
               </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <Link to="add" style={{ textDecoration: "none", color: "black" }}>
-          <Button
-            variant="contained"
-            size="small"
-            sx={{
-              borderRadius: "6px",
-              backgroundColor: indigo[300],
-              marginBottom: "5px",
-              paddingTop: "8px",
-              paddingBottom: "8px",
-              paddingLeft: "10px",
-              paddingRight: "10px",
-            }}
-          >
-            Add Doctor
-          </Button>
-        </Link>
+              {specializations.map((eachSpecialization) => (
+                <MenuItem
+                  id={eachSpecialization.name}
+                  key={eachSpecialization.id}
+                  value={eachSpecialization.id}
+                >
+                  {eachSpecialization.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <Link to="add" style={{ textDecoration: "none", color: "black" }}>
+            <Button
+              variant="contained"
+              size="small"
+              sx={{
+                borderRadius: "6px",
+                backgroundColor: indigo[300],
+                marginBottom: "5px",
+                paddingTop: "8px",
+                paddingBottom: "8px",
+                paddingLeft: "10px",
+                paddingRight: "10px",
+              }}
+            >
+              Add Doctor
+            </Button>
+          </Link>
+        </Grid2>
       </Grid2>
       {rows.length === 0 && (
         <Alert severity="info">No doctors found for the selected filter</Alert>
@@ -432,13 +477,17 @@ export default function Doctors() {
                 <TableCell style={{ width: 160 }} align="center">
                   {row.status ? (
                     <Tooltip title="active">
-                      <Icon sx={{height:"2rem", width:"2rem", color: "green" }}>
+                      <Icon
+                        sx={{ height: "2rem", width: "2rem", color: "green" }}
+                      >
                         <ToggleOn sx={{ fontSize: "2rem" }} />
                       </Icon>
                     </Tooltip>
                   ) : (
                     <Tooltip title="inactive">
-                      <Icon sx={{height:"2rem", width:"2rem", color: "red" }}>
+                      <Icon
+                        sx={{ height: "2rem", width: "2rem", color: "red" }}
+                      >
                         <ToggleOff sx={{ fontSize: "2rem" }} />
                       </Icon>
                     </Tooltip>

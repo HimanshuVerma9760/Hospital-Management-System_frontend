@@ -42,14 +42,20 @@ export default function CreateForm() {
       const container = document.querySelector(
         ".react-form-builder-preview"
       )?.parentElement;
+      const dropZone = document.querySelector(".react-form-builder-preview");
       const toolbar = document.querySelector(".react-form-builder-toolbar");
       if (toolbar) {
         toolbar.style.margin = "0px";
+        toolbar.style.width = "50%";
+      }
+      if (dropZone) {
+        dropZone.style.width = "50%";
       }
       if (container) {
         container.style.display = "flex";
         container.style.gap = "15px";
         container.style.alignItems = "start";
+        container.style.width = "100%";
 
         // clearInterval(interval);
       }

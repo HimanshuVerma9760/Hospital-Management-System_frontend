@@ -4,6 +4,7 @@ import {
   Button,
   FormControl,
   Grid2,
+  InputAdornment,
   InputLabel,
   ListItemButton,
   ListItemIcon,
@@ -12,6 +13,7 @@ import {
   Select,
   Skeleton,
   TableHead,
+  TextField,
   Typography,
 } from "@mui/material";
 import * as React from "react";
@@ -31,9 +33,11 @@ import FirstPageIcon from "@mui/icons-material/FirstPage";
 import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import LastPageIcon from "@mui/icons-material/LastPage";
-import { Add } from "@mui/icons-material";
+import { Add, Search } from "@mui/icons-material";
 import { Link } from "react-router";
 import { indigo } from "@mui/material/colors";
+import { debounce } from "lodash";
+import { useCallback } from "react";
 const Conn = import.meta.env.VITE_CONN_URI;
 
 export default function Patients() {
@@ -41,6 +45,15 @@ export default function Patients() {
   const [diseases, setDiseases] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [fetchedPatients, setFetchedPatients] = useState([]);
+  const [keyword, setKeyword] = useState("");
+  const [page, setPage] = React.useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(5);
+  const [totalCount, setTotalCount] = React.useState(0);
+
+  const debouncedFetchData = debounce(() => {
+    console.log("executed debounce");
+    fetchData();
+  }, 500);
 
   async function fetchDiseases() {
     const response = await fetch(`${Conn}/diseases`);
@@ -51,9 +64,11 @@ export default function Patients() {
       console.log("Some error occured");
     }
   }
+
   useEffect(() => {
     fetchDiseases();
   }, []);
+
   function TablePaginationActions(props) {
     const theme = useTheme();
     const { count, page, rowsPerPage, onPageChange } = props;
@@ -115,6 +130,7 @@ export default function Patients() {
       </Box>
     );
   }
+
   TablePaginationActions.propTypes = {
     count: PropTypes.number.isRequired,
     onPageChange: PropTypes.func.isRequired,
@@ -137,10 +153,6 @@ export default function Patients() {
     )
   );
 
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
-  const [totalCount, setTotalCount] = React.useState(0);
-
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -149,27 +161,28 @@ export default function Patients() {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
+  async function fetchData() {
+    try {
+      const response = await fetch(
+        `${Conn}/patients/?page=${
+          page + 1
+        }&limit=${rowsPerPage}&disease=${disease}&keyword=${keyword}`
+      );
+      const result = await response.json();
+      if (response.ok) {
+        setFetchedPatients(result.result);
+        setTotalCount(result.totalRecords);
+      } else {
+        console.error("Error fetching doctors:", result);
+      }
+    } catch (error) {
+      console.error("Fetch error:", error);
+    }
+    setIsLoading(false);
+  }
+
   useEffect(() => {
     setIsLoading(true);
-    async function fetchData() {
-      try {
-        const response = await fetch(
-          `${Conn}/patients/?page=${
-            page + 1
-          }&limit=${rowsPerPage}&disease=${disease}`
-        );
-        const result = await response.json();
-        if (response.ok) {
-          setFetchedPatients(result.result);
-          setTotalCount(result.totalRecords);
-        } else {
-          console.error("Error fetching doctors:", result);
-        }
-      } catch (error) {
-        console.error("Fetch error:", error);
-      }
-      setIsLoading(false);
-    }
     fetchData();
   }, [page, rowsPerPage, disease]);
 
@@ -185,51 +198,79 @@ export default function Patients() {
 
   return (
     <>
-      <Typography variant="h4" fontWeight="bold" align="center">
+      <Typography
+        variant="h4"
+        fontWeight="bold"
+        align="center"
+        sx={{ marginBottom: "1.5rem" }}
+      >
         Patients
       </Typography>
-      <Grid2 display="flex" justifyContent="end" gap="1rem" alignItems="center">
-        <FormControl sx={{ minWidth: 150 }}>
-          <Select
-            id="Disease"
-            name="Disease"
-            value={disease}
-            onChange={(e) => setDisease(e.target.value)}
-            sx={{ marginBottom: "5px", width: "10rem" }}
-            onClick={() => setPage(0)}
-            size="small"
-          >
-            <MenuItem id="all" value={0}>
-              Select Disease
-            </MenuItem>
-            {diseases.map((eachDisease) => (
-              <MenuItem
-                key={eachDisease.id}
-                id={eachDisease.name}
-                value={eachDisease.id}
-              >
-                {eachDisease.name}
+      <Grid2 display="flex" justifyContent="space-between" alignItems="center">
+        <TextField
+          variant="outlined"
+          size="small"
+          type="text"
+          placeholder="Search here"
+          value={keyword}
+          onChange={(e) => {
+            setKeyword(e.target.value);
+            debouncedFetchData();
+          }}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton size="small">
+                  <Search sx={{ fontSize: "1.5rem" }} />
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+          sx={{ width: "30rem" }}
+        />
+        <Grid2 display="flex" gap="1rem">
+          <FormControl sx={{ minWidth: 150 }}>
+            <Select
+              id="Disease"
+              name="Disease"
+              value={disease}
+              onChange={(e) => setDisease(e.target.value)}
+              sx={{ marginBottom: "5px", width: "10rem" }}
+              onClick={() => setPage(0)}
+              size="small"
+            >
+              <MenuItem id="all" value={0}>
+                Select Disease
               </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        <Link to="add" style={{ textDecoration: "none", color: "black" }}>
-          <Button
-            variant="contained"
-            size="small"
-            sx={{
-              borderRadius: "6px",
-              backgroundColor: indigo[300],
-              marginBottom: "5px",
-              paddingTop: "8px",
-              paddingBottom: "8px",
-              paddingLeft: "10px",
-              paddingRight: "10px",
-            }}
-          >
-            Add Patient
-          </Button>
-        </Link>
+              {diseases.map((eachDisease) => (
+                <MenuItem
+                  key={eachDisease.id}
+                  id={eachDisease.name}
+                  value={eachDisease.id}
+                >
+                  {eachDisease.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <Link to="add" style={{ textDecoration: "none", color: "black" }}>
+            <Button
+              variant="contained"
+              size="small"
+              sx={{
+                borderRadius: "6px",
+                backgroundColor: indigo[300],
+                marginBottom: "5px",
+                paddingTop: "8px",
+                paddingBottom: "8px",
+                paddingLeft: "10px",
+                paddingRight: "10px",
+              }}
+            >
+              Add Patient
+            </Button>
+          </Link>
+        </Grid2>
       </Grid2>
       {rows.length === 0 && (
         <Alert severity="info">No Patient found for the selected disease</Alert>

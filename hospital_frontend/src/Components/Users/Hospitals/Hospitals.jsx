@@ -5,12 +5,14 @@ import {
   Button,
   Grid2,
   Icon,
+  InputAdornment,
   ListItem,
   ListItemButton,
   ListItemIcon,
   ListItemText,
   Skeleton,
   TableHead,
+  TextField,
   Tooltip,
   Typography,
 } from "@mui/material";
@@ -31,11 +33,13 @@ import FirstPageIcon from "@mui/icons-material/FirstPage";
 import KeyboardArrowLeft from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRight from "@mui/icons-material/KeyboardArrowRight";
 import LastPageIcon from "@mui/icons-material/LastPage";
+import { debounce } from "lodash";
 import {
   Add,
   Delete,
   Edit,
   Restore,
+  Search,
   ToggleOff,
   ToggleOn,
 } from "@mui/icons-material";
@@ -49,6 +53,9 @@ export default function Hospitals() {
   const [isVerified, setIsVerified] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [fetchedHospitals, setFetchedHospitals] = useState([]);
+  const [page, setPage] = React.useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(5);
+  const [totalCount, setTotalCount] = React.useState(0);
   // const [message, setMessage] = useState("");
   // const [op, setOp] = useState(false);
   const [showPrompt, setShowPrompt] = useState({
@@ -151,10 +158,6 @@ export default function Hospitals() {
     )
   );
 
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
-  const [totalCount, setTotalCount] = React.useState(0);
-
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -163,6 +166,38 @@ export default function Hospitals() {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
+  const [keyword, setKeyword] = useState("");
+
+  const debouncedFetchData = debounce(() => {
+    console.log("executed debounce");
+    getData();
+  }, 500);
+  async function getData() {
+    try {
+      const response = await fetch(
+        `${Conn}/hospitals/get/?page=${
+          page + 1
+        }&limit=${rowsPerPage}&keyword=${keyword}`,
+        {
+          headers: {
+            authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      const result = await response.json();
+      if (response.ok) {
+        console.log(result.result);
+        setFetchedHospitals(result.result);
+        setTotalCount(result.totalRecords);
+      } else {
+        console.error("Error fetching doctors:", result);
+        notify("Error fetching doctors!");
+      }
+    } catch (error) {
+      console.error("Fetch error:", error);
+      notify("Server is down, try again later!");
+    }
+  }
   useEffect(() => {
     setIsLoading(true);
     async function checkAuth() {
@@ -175,28 +210,7 @@ export default function Hospitals() {
       ) {
         setIsVerified(false);
       } else {
-        try {
-          const response = await fetch(
-            `${Conn}/hospitals/get/?page=${page + 1}&limit=${rowsPerPage}`,
-            {
-              headers: {
-                authorization: `Bearer ${localStorage.getItem("token")}`,
-              },
-            }
-          );
-          const result = await response.json();
-
-          if (response.ok) {
-            setFetchedHospitals(result.result);
-            setTotalCount(result.totalRecords);
-          } else {
-            console.error("Error fetching doctors:", result);
-            notify("Error fetching doctors!");
-          }
-        } catch (error) {
-          console.error("Fetch error:", error);
-          notify("Server is down, try again later!");
-        }
+        getData();
       }
       setIsLoading(false);
     }
@@ -284,11 +298,37 @@ export default function Hospitals() {
   }
   return (
     <>
-      <Typography variant="h4" fontWeight="bold" align="center">
+      <Typography
+        variant="h4"
+        fontWeight="bold"
+        align="center"
+        sx={{ marginBottom: "1.5rem" }}
+      >
         Hospitals
       </Typography>
       <Toaster />
-      <Grid2 display="flex" justifyContent="end">
+      <Grid2 display="flex" justifyContent="space-between">
+        <TextField
+          variant="outlined"
+          size="small"
+          type="text"
+          placeholder="Search here"
+          value={keyword}
+          onChange={(e) => {
+            setKeyword(e.target.value);
+            debouncedFetchData();
+          }}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton size="small">
+                  <Search sx={{ fontSize: "1.5rem" }} />
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+          sx={{ width: "30rem" }}
+        />
         <Link to="add" style={{ textDecoration: "none", color: "black" }}>
           <Button
             variant="contained"
@@ -307,12 +347,10 @@ export default function Hospitals() {
           </Button>
         </Link>
       </Grid2>
-      {/* {op && <Alert severity="success">{localStorage.getItem("op")}</Alert>} */}
-      {/* {message && <Alert severity="success">{message}</Alert>} */}
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 500 }} aria-label="custom pagination table">
           <TableHead>
-            <TableRow sx={{ marginBottom: "2rem" }}>
+            <TableRow>
               <TableCell>
                 <Typography
                   variant="h6"
@@ -417,7 +455,11 @@ export default function Hospitals() {
                 </TableCell>
                 <TableCell
                   style={{ width: 160 }}
-                  sx={{ display: "flex", justifyContent: "center", gap: "0.5rem" }}
+                  sx={{
+                    display: "flex",
+                    justifyContent: "center",
+                    gap: "0.5rem",
+                  }}
                   align="center"
                 >
                   <Tooltip title="edit">

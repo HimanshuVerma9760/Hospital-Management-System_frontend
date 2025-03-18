@@ -25,6 +25,8 @@ import "@fontsource/roboto/300.css";
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
+import Profile from "./Components/Users/User/Profile";
+import "./App.css";
 // import Forms from "./Components/Users/Appointments/FormBuilder/Forms";
 
 export default function App() {
@@ -45,6 +47,10 @@ export default function App() {
       path: "/users",
       element: <Welcome />,
       children: [
+        {
+          path: "profile",
+          element: <Profile />,
+        },
         {
           path: "doctors",
           element: <Doctors />,

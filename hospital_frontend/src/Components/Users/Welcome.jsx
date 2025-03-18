@@ -19,6 +19,8 @@ import {
   ImageListItem,
   IconButton,
   Tooltip,
+  MenuItem,
+  Menu,
 } from "@mui/material";
 import HomeIcon from "@mui/icons-material/Home";
 import {
@@ -49,6 +51,15 @@ export default function Welcome() {
   const nav = useLocation();
   const navigate = useNavigate();
 
+  const [anchorEl, setAnchorEl] = useState(null);
+
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClosePrompt = () => {
+    setAnchorEl(null);
+  };
   async function getUser(id) {
     const response = await fetch(`${Conn}/get/user/${id}`);
     if (response.ok) {
@@ -369,7 +380,7 @@ export default function Welcome() {
             Hospital Management System
           </Typography>
           <Tooltip title="Change profile picture">
-            <IconButton onClick={() => setShowPrompt(true)}>
+            <IconButton onClick={handleClick}>
               <Avatar
                 sx={{ bgcolor: deepOrange[500] }}
                 alt="Remy Sharp"
@@ -379,9 +390,39 @@ export default function Welcome() {
               </Avatar>
             </IconButton>
           </Tooltip>
+
+          <Menu
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={handleClosePrompt}
+            anchorOrigin={{
+              vertical: "bottom",
+              horizontal: "right",
+            }}
+            transformOrigin={{
+              vertical: "top",
+              horizontal: "right",
+            }}
+          >
+            <MenuItem
+              onClick={() => {
+                setShowPrompt(true);
+                handleClosePrompt();
+              }}
+            >
+              Change Profile Picture
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                handleClosePrompt();
+                navigate("/users/profile");
+              }}
+            >
+              View Profile
+            </MenuItem>
+          </Menu>
         </Grid2>
         <Box sx={{ p: 3, marginTop: "0.5rem", overflow: "hidden" }}>
-          {/* <AnimatePresence mode="wait"> */}
           <motion.div
             key={location.pathname}
             initial={{ opacity: 0, y: -100 }}
@@ -394,83 +435,11 @@ export default function Welcome() {
                 ease: "easeInOut",
               },
             }}
-            // exit={{
-            //   opacity: 0,
-            //   x: 100,
-            //   transition: {
-            //     duration: 0.3,
-            //     delay: 0,
-            //     ease: "easeIn",
-            //     damping: 20,
-            //   },
-            // }}
           >
             <Outlet />
           </motion.div>
-          {/* </AnimatePresence> */}
         </Box>
       </Box>
     </Box>
   );
 }
-
-// import { AnimatePresence } from "motion/react"
-// import * as motion from "motion/react-client"
-// import { useState } from "react"
-
-// export default function ExitAnimation() {
-//     const [isVisible, setIsVisible] = useState(true)
-
-//     return (
-//         <div style={container}>
-//             <AnimatePresence initial={false}>
-//                 {isVisible ? (
-//                     <motion.div
-// initial={{ opacity: 0, scale: 0 }}
-// animate={{ opacity: 1, scale: 1 }}
-// exit={{ opacity: 0, scale: 0 }}
-//                         style={box}
-//                         key="box"
-//                     />
-//                 ) : null}
-//             </AnimatePresence>
-//             <motion.button
-//                 style={button}
-//                 onClick={() => setIsVisible(!isVisible)}
-//                 whileTap={{ y: 1 }}
-//             >
-//                 {isVisible ? "Hide" : "Show"}
-//             </motion.button>
-//         </div>
-//     )
-// }
-
-// /**
-//  * ==============   Styles   ================
-//  */
-
-// const container: React.CSSProperties = {
-//     display: "flex",
-//     flexDirection: "column",
-//     width: 100,
-//     height: 160,
-//     position: "relative",
-// }
-
-// const box: React.CSSProperties = {
-//     width: 100,
-//     height: 100,
-//     backgroundColor: "#0cdcf7",
-//     borderRadius: "10px",
-// }
-
-// const button: React.CSSProperties = {
-//     backgroundColor: "#0cdcf7",
-//     borderRadius: "10px",
-//     padding: "10px 20px",
-//     color: "#0f1115",
-//     position: "absolute",
-//     bottom: 0,
-//     left: 0,
-//     right: 0,
-// }

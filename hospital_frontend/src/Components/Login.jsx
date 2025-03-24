@@ -37,11 +37,11 @@ export default function Login() {
     async function checkAuth() {
       const verifiedUser = await useAuth();
       if (verifiedUser.response) {
-        navigate("/users/doctors");
+        navigate("/users/dashboard");
       } else {
         localStorage.clear();
+        setPageLoading(false);
       }
-      setPageLoading(false);
     }
     checkAuth();
   }, []);
@@ -73,7 +73,7 @@ export default function Login() {
       if (response.ok) {
         const result = await response.json();
         localStorage.setItem("token", result.token);
-        navigate("/users/doctors");
+        navigate("/users/dashboard");
       } else {
         notify("Invalid Credentials!");
       }

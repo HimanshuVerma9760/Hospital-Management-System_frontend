@@ -27,7 +27,9 @@ import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 import Profile from "./Components/Users/User/Profile";
 import "./App.css";
-// import Forms from "./Components/Users/Appointments/FormBuilder/Forms";
+import Dashboard from "./Components/Users/Dashboard";
+import Prescriptions from "./Components/Users/Prescriptions/Prescriptions";
+import AddPrescription from "./Components/Users/Prescriptions/AddPrescription";
 
 export default function App() {
   const theme = createTheme({
@@ -47,6 +49,10 @@ export default function App() {
       path: "/users",
       element: <Welcome />,
       children: [
+        {
+          path: "dashboard",
+          element: <Dashboard />,
+        },
         {
           path: "profile",
           element: <Profile />,
@@ -90,6 +96,14 @@ export default function App() {
         {
           path: "appointments/create",
           element: <CreateAppointments />,
+        },
+        {
+          path: "prescriptions",
+          element: <Prescriptions />,
+        },
+        {
+          path: "prescriptions/create",
+          element: <AddPrescription />,
         },
         {
           path: "forms",

@@ -1,4 +1,10 @@
-import { Box, Grid2, Skeleton, Typography } from "@mui/material";
+import {
+  Box,
+  Grid2,
+  LinearProgress,
+  Skeleton,
+  Typography,
+} from "@mui/material";
 import CheckoutButton from "./CheckoutButton";
 import { useEffect, useState } from "react";
 const Conn = import.meta.env.VITE_CONN_URI;
@@ -24,7 +30,7 @@ export default function CheckoutPage({ order }) {
     fetchAppointmentDetails();
   }, []);
   if (isLoading) {
-    return <Skeleton variant="rectangular" height={300} />;
+    return <LinearProgress />;
   }
   return (
     <>

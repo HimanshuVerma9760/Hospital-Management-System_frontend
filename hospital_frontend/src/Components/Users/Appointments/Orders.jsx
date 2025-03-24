@@ -5,6 +5,7 @@ import {
   FormControl,
   Grid2,
   InputLabel,
+  LinearProgress,
   ListItemButton,
   ListItemIcon,
   ListItemText,
@@ -218,20 +219,14 @@ export default function Orders() {
   }
 
   if (isLoading) {
-    return (
-      <>
-        <Skeleton variant="rectangular" height={100} />
-        <Skeleton variant="text" height={80} width={300} />
-        <Skeleton variant="rectangular" height={100} />
-      </>
-    );
+    return <LinearProgress />;
   }
   if (isCard.state) {
     return <CheckoutPage order={isCard.orderDetails} />;
   }
   return (
     <>
-      <Typography variant="h4" align="center" sx={{marginBottom:"1.8rem"}}>
+      <Typography variant="h4" align="center" sx={{ marginBottom: "1.8rem" }}>
         Orders
       </Typography>
       {/* <Grid2 display="flex" justifyContent="end" gap="1rem" alignItems="center">

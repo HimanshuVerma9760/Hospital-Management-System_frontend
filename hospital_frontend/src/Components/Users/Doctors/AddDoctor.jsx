@@ -7,6 +7,7 @@ import {
   FormHelperText,
   Grid2,
   InputLabel,
+  LinearProgress,
   MenuItem,
   Select,
   Skeleton,
@@ -14,9 +15,9 @@ import {
   Typography,
 } from "@mui/material";
 import { useEffect, useState } from "react";
-import { Form } from "react-router";
+import { Form, useNavigate } from "react-router";
 import useAuth from "../../../util/useAuth";
-import { Toaster } from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
 const Conn = import.meta.env.VITE_CONN_URI;
 
 export default function AddDoctor() {
@@ -26,11 +27,15 @@ export default function AddDoctor() {
   const [submissionProgress, setSubmissionProgress] = useState(false);
   const [name, setName] = useState("");
   const [specialization, setSpecialization] = useState("");
+  const [email, setEmail] = useState("");
   const [city, setCity] = useState("");
   const [fees, setFees] = useState("");
   const [hospital, setHospital] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [hospitals, setHospitals] = useState([]);
   const [specializations, setSpecializations] = useState([]);
+  const navigate = useNavigate();
   async function fetchCities() {
     const response = await fetch(`${Conn}/cities`);
     if (response.ok) {
@@ -107,6 +112,26 @@ export default function AddDoctor() {
           },
         }));
         break;
+      case "email":
+        setEmail(value);
+        setError((prevState) => ({
+          ...prevState,
+          emailError: {
+            state: false,
+            message: "",
+          },
+        }));
+        break;
+      case "password":
+        setPassword(value);
+        setError((prevState) => ({
+          ...prevState,
+          passwordError: {
+            state: false,
+            message: "",
+          },
+        }));
+        break;
       case "fees":
         setFees(value);
         setError((prevState) => ({
@@ -127,10 +152,21 @@ export default function AddDoctor() {
           },
         }));
         break;
+      case "confirmPassword":
+        setConfirmPassword(value);
+        setError((prevState) => ({
+          ...prevState,
+          confirmPasswordError: {
+            state: false,
+            message: "",
+          },
+        }));
+        break;
       default:
         break;
     }
   }
+
   function containsNumber(name) {
     return /\d/.test(name);
   }
@@ -155,7 +191,23 @@ export default function AddDoctor() {
       state: false,
       message: "",
     },
+    emailError: {
+      state: false,
+      message: "",
+    },
+    passwordError: {
+      state: false,
+      message: "",
+    },
+    confirmPasswordError: {
+      state: false,
+      message: "",
+    },
   });
+  function isValidEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  }
   function onBlurHandler(event) {
     const id = event.target.id || event.target.name;
     const value = event.target.value;
@@ -195,6 +247,28 @@ export default function AddDoctor() {
           }));
         }
         break;
+      case "email":
+        if (!isValidEmail(value)) {
+          setError((prevState) => ({
+            ...prevState,
+            emailError: {
+              state: true,
+              message: "Invalid email provided",
+            },
+          }));
+        }
+        break;
+      case "password":
+        if (value.trim().length < 8) {
+          setError((prevState) => ({
+            ...prevState,
+            passwordError: {
+              state: true,
+              message: "Password length must be atleast 8",
+            },
+          }));
+        }
+        break;
 
       case "hospital":
         if (value.length === 0) {
@@ -203,6 +277,36 @@ export default function AddDoctor() {
             hospitalError: {
               state: true,
               message: "Choose a hospital from the menu",
+            },
+          }));
+        }
+        break;
+      case "hospital":
+        if (value.length === 0) {
+          setError((prevState) => ({
+            ...prevState,
+            hospitalError: {
+              state: true,
+              message: "Choose a hospital from the menu",
+            },
+          }));
+        }
+        break;
+      case "confirmPassword":
+        if (value.length < 8) {
+          setError((prevState) => ({
+            ...prevState,
+            confirmPasswordError: {
+              state: true,
+              message: "Password length must be atleast 8",
+            },
+          }));
+        } else if (value !== password) {
+          setError((prevState) => ({
+            ...prevState,
+            confirmPasswordError: {
+              state: true,
+              message: "Passwords are different",
             },
           }));
         }
@@ -243,6 +347,8 @@ export default function AddDoctor() {
     setSubmissionProgress(true);
     const formData = {
       name: name,
+      email: email,
+      password: password,
       specialization_id: specialization,
       city_id: city,
       hospital_id: hospital,
@@ -284,39 +390,13 @@ export default function AddDoctor() {
   }
   const notify = (response) => {
     response === "success"
-      ? toast.success("Successfully added hospital")
+      ? toast.success("Successfully added doctor")
       : toast.error(response);
   };
   if (isLoading) {
-    return (
-      <Grid2
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-        }}
-      >
-        <Skeleton variant="text" width={300} sx={{ alignSelf: "center" }} />
-        <Skeleton
-          variant="rectangular"
-          width={300}
-          height={200}
-          sx={{ alignSelf: "center" }}
-        />
-        <Skeleton
-          variant="rectangular"
-          width={300}
-          height={200}
-          sx={{ alignSelf: "center" }}
-        />
-      </Grid2>
-    );
+    return <LinearProgress />;
   } else if (!isVerified) {
-    return (
-      <Alert severity="error">
-        You are not authorized to perform this action
-      </Alert>
-    );
+    navigate("/users/dashboard");
   }
   return (
     <>
@@ -370,6 +450,41 @@ export default function AddDoctor() {
               onBlur={onBlurHandler}
               error={error.nameError.state}
               helperText={error.nameError.message}
+              onChange={onChangeHandler}
+              size="medium"
+            />
+            <TextField
+              name="email"
+              id="email"
+              label="Enter email of the Doctor"
+              value={email}
+              onBlur={onBlurHandler}
+              error={error.emailError.state}
+              helperText={error.emailError.message}
+              onChange={onChangeHandler}
+              size="medium"
+            />
+            <TextField
+              name="password"
+              id="password"
+              type="password"
+              label="Enter password"
+              value={password}
+              onBlur={onBlurHandler}
+              error={error.passwordError.state}
+              helperText={error.passwordError.message}
+              onChange={onChangeHandler}
+              size="medium"
+            />
+            <TextField
+              name="confirmPassword"
+              id="confirmPassword"
+              type="text"
+              label="Repeat password"
+              value={confirmPassword}
+              onBlur={onBlurHandler}
+              error={error.confirmPasswordError.state}
+              helperText={error.confirmPasswordError.message}
               onChange={onChangeHandler}
               size="medium"
             />

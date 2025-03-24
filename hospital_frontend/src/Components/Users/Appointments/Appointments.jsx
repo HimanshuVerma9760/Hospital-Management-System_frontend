@@ -5,6 +5,7 @@ import {
   FormControl,
   Grid2,
   InputLabel,
+  LinearProgress,
   ListItemButton,
   ListItemIcon,
   ListItemText,
@@ -229,13 +230,7 @@ export default function Appointments() {
   }
 
   if (isLoading) {
-    return (
-      <>
-        <Skeleton variant="rectangular" height={100} />
-        <Skeleton variant="text" height={80} width={300} />
-        <Skeleton variant="rectangular" height={100} />
-      </>
-    );
+    return <LinearProgress />;
   }
   if (isCard.state) {
     return <CheckoutPage order={isCard.orderDetails} />;

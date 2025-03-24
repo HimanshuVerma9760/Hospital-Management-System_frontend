@@ -7,6 +7,7 @@ import {
   FormHelperText,
   Grid2,
   InputLabel,
+  LinearProgress,
   MenuItem,
   Select,
   Skeleton,
@@ -14,7 +15,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useEffect, useState } from "react";
-import { Form } from "react-router";
+import { Form, useNavigate } from "react-router";
 import useAuth from "../../../util/useAuth";
 import toast, { Toaster } from "react-hot-toast";
 const Conn = import.meta.env.VITE_CONN_URI;
@@ -27,6 +28,7 @@ export default function AddHospital() {
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [city, setCity] = useState("");
+  const navigate = useNavigate();
   async function fetchCities() {
     const response = await fetch(`${Conn}/cities`);
     if (response.ok) {
@@ -198,35 +200,9 @@ export default function AddHospital() {
     }
   }
   if (isLoading) {
-    return (
-      <Grid2
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-        }}
-      >
-        <Skeleton variant="text" width={300} sx={{ alignSelf: "center" }} />
-        <Skeleton
-          variant="rectangular"
-          width={300}
-          height={200}
-          sx={{ alignSelf: "center" }}
-        />
-        <Skeleton
-          variant="rectangular"
-          width={300}
-          height={200}
-          sx={{ alignSelf: "center" }}
-        />
-      </Grid2>
-    );
+    return <LinearProgress />;
   } else if (!isVerified) {
-    return (
-      <Alert severity="error">
-        You are not authorized to perform this action
-      </Alert>
-    );
+    navigate("/users/dashboard");
   }
   return (
     <>

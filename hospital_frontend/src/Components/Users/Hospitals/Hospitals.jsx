@@ -6,6 +6,7 @@ import {
   Grid2,
   Icon,
   InputAdornment,
+  LinearProgress,
   ListItem,
   ListItemButton,
   ListItemIcon,
@@ -56,8 +57,6 @@ export default function Hospitals() {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const [totalCount, setTotalCount] = React.useState(0);
-  // const [message, setMessage] = useState("");
-  // const [op, setOp] = useState(false);
   const [showPrompt, setShowPrompt] = useState({
     state: false,
     type: "",
@@ -169,9 +168,9 @@ export default function Hospitals() {
   const [keyword, setKeyword] = useState("");
 
   const debouncedFetchData = debounce(() => {
-    console.log("executed debounce");
     getData();
   }, 500);
+
   async function getData() {
     try {
       const response = await fetch(
@@ -197,24 +196,28 @@ export default function Hospitals() {
       console.error("Fetch error:", error);
       notify("Server is down, try again later!");
     }
+    setIsLoading(false);
   }
+
+  async function checkAuth() {
+    const verfiedUser = await useAuth();
+    if (
+      !(
+        verfiedUser.response &&
+        (verfiedUser.role === "Super-Admin" || verfiedUser.role === "Admin")
+      )
+    ) {
+      setIsVerified(false);
+    }
+  }
+
   useEffect(() => {
     setIsLoading(true);
-    async function checkAuth() {
-      const verfiedUser = await useAuth();
-      if (
-        !(
-          verfiedUser.response &&
-          (verfiedUser.role === "Super-Admin" || verfiedUser.role === "Admin")
-        )
-      ) {
-        setIsVerified(false);
-      } else {
-        getData();
-      }
-      setIsLoading(false);
-    }
     checkAuth();
+  }, []);
+
+  useEffect(() => {
+    getData();
   }, [page, rowsPerPage, showPrompt.state]);
 
   const notify = (response) => {
@@ -267,20 +270,9 @@ export default function Hospitals() {
   }
 
   if (isLoading) {
-    return (
-      <>
-        <Skeleton variant="rectangular" height={100} />
-        <Skeleton variant="text" height={80} width={300} />
-        <Skeleton variant="rectangular" height={100} />
-      </>
-    );
+    return <LinearProgress />;
   } else if (!isVerified) {
-    return (
-      <Alert severity="error">
-        You Are Not Authorised to view this page. Kindly{" "}
-        <Link to="/">Login</Link>
-      </Alert>
-    );
+    navigate("/users/dashboard");
   } else if (showPrompt.state) {
     return (
       <ModalContent
@@ -491,7 +483,7 @@ export default function Hospitals() {
             <TableRow>
               <TablePagination
                 rowsPerPageOptions={[5, 10, 25, { label: "All", value: -1 }]}
-                colSpan={6}
+                colSpan={5}
                 count={totalCount}
                 rowsPerPage={rowsPerPage}
                 page={page}

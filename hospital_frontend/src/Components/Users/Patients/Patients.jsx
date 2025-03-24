@@ -6,6 +6,7 @@ import {
   Grid2,
   InputAdornment,
   InputLabel,
+  LinearProgress,
   ListItemButton,
   ListItemIcon,
   ListItemText,
@@ -163,6 +164,7 @@ export default function Patients() {
   };
   async function fetchData() {
     try {
+      setIsLoading(true);
       const response = await fetch(
         `${Conn}/patients/?page=${
           page + 1
@@ -182,18 +184,11 @@ export default function Patients() {
   }
 
   useEffect(() => {
-    setIsLoading(true);
     fetchData();
   }, [page, rowsPerPage, disease]);
 
   if (isLoading) {
-    return (
-      <>
-        <Skeleton variant="rectangular" height={100} />
-        <Skeleton variant="text" height={80} width={300} />
-        <Skeleton variant="rectangular" height={100} />
-      </>
-    );
+    return <LinearProgress />;
   }
 
   return (

@@ -7,6 +7,7 @@ import {
   FormHelperText,
   Grid2,
   InputLabel,
+  LinearProgress,
   MenuItem,
   Select,
   Skeleton,
@@ -311,35 +312,9 @@ export default function EditDoctor() {
     toast.error(response);
   };
   if (isLoading) {
-    return (
-      <Grid2
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-        }}
-      >
-        <Skeleton variant="text" width={300} sx={{ alignSelf: "center" }} />
-        <Skeleton
-          variant="rectangular"
-          width={300}
-          height={200}
-          sx={{ alignSelf: "center" }}
-        />
-        <Skeleton
-          variant="rectangular"
-          width={300}
-          height={200}
-          sx={{ alignSelf: "center" }}
-        />
-      </Grid2>
-    );
+    return <LinearProgress />;
   } else if (!isVerified) {
-    return (
-      <Alert severity="error">
-        You are not authorized to perform this action
-      </Alert>
-    );
+    navigate("/users/dashboard");
   }
   localStorage.removeItem("id");
   return (

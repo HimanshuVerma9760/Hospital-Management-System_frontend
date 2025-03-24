@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Drawer,
   List,
@@ -25,11 +25,13 @@ import {
 import HomeIcon from "@mui/icons-material/Home";
 import {
   Create,
+  Dashboard,
   FormatAlignCenter,
   ListAltOutlined,
   ListAltRounded,
   LocalHospital,
   Logout,
+  Notes,
   Person,
 } from "@mui/icons-material";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
@@ -72,16 +74,23 @@ export default function Welcome() {
       console.log(result.message);
     }
   }
+  const isAdmin = useRef(false);
   useEffect(() => {
     async function checkAuth() {
       const userVerified = await useAuth();
       if (userVerified.response) {
         setIsVerified(true);
-        getUser(userVerified.id);
-        setIsLoading(false);
+        if (
+          userVerified.role === "Admin" ||
+          userVerified.role === "Super-Admin"
+        ) {
+          isAdmin.current = true;
+        }
+        getUser(userVerified.userId);
       } else {
         setIsVerified(false);
       }
+      setIsLoading(false);
     }
     checkAuth();
   }, []);
@@ -120,14 +129,15 @@ export default function Welcome() {
       </Box>
     );
   } else if (!isVerified) {
-    return (
-      <Box sx={{ margin: "20px" }}>
-        <Alert severity="error">
-          You Are Not Authorised to view this page. Kindly{" "}
-          <Link to="/">Login</Link>
-        </Alert>
-      </Box>
-    );
+    navigate("/");
+    // return (
+    // <Box sx={{ margin: "20px" }}>
+    //   <Alert severity="error">
+    //     You Are Not Authorised to view this page. Kindly{" "}
+    //     <Link to="/">Login</Link>
+    //   </Alert>
+    // </Box>
+    // );
   }
   function handleClose() {
     setShowPrompt(false);
@@ -182,65 +192,95 @@ export default function Welcome() {
             marginRight: "1rem",
             display: "flex",
             flexDirection: "column",
-            gap: "0.5rem",
+            gap: "0.2rem",
           }}
         >
           <motion.div
             initial={{ opacity: 0, x: -100 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
           >
             <Link
-              to="doctors"
+              to="dashboard"
               style={{ textDecoration: "none", color: "black" }}
             >
               <ListItemButton
                 style={{ display: "flex", gap: "2rem" }}
                 sx={
-                  nav.pathname.split("/")[2] === "doctors" && {
+                  nav.pathname.split("/")[2] === "dashboard" && {
                     backgroundColor: "whitesmoke",
                   }
                 }
               >
                 <Typography sx={{ fontWeight: "bold", fontSize: "14px" }}>
-                  <ListAltOutlined />
+                  <Dashboard />
                 </Typography>
                 <Typography sx={{ fontWeight: "bold", fontSize: "14px" }}>
-                  Doctors
+                  Dashboard
                 </Typography>
               </ListItemButton>
             </Link>
           </motion.div>
-          <motion.div
-            initial={{ opacity: 0, x: -100 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            <Link
-              to="hospitals"
-              style={{ textDecoration: "none", color: "black" }}
-            >
-              <ListItemButton
-                style={{ display: "flex", gap: "2rem" }}
-                sx={
-                  nav.pathname.split("/")[2] === "hospitals" && {
-                    backgroundColor: "whitesmoke",
-                  }
-                }
+          {isAdmin.current && (
+            <>
+              <motion.div
+                initial={{ opacity: 0, x: -100 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.6 }}
               >
-                <Typography sx={{ fontWeight: "bold", fontSize: "14px" }}>
-                  <LocalHospital />
-                </Typography>
-                <Typography sx={{ fontWeight: "bold", fontSize: "14px" }}>
-                  Hospitals
-                </Typography>
-              </ListItemButton>
-            </Link>
-          </motion.div>
+                <Link
+                  to="doctors"
+                  style={{ textDecoration: "none", color: "black" }}
+                >
+                  <ListItemButton
+                    style={{ display: "flex", gap: "2rem" }}
+                    sx={
+                      nav.pathname.split("/")[2] === "doctors" && {
+                        backgroundColor: "whitesmoke",
+                      }
+                    }
+                  >
+                    <Typography sx={{ fontWeight: "bold", fontSize: "14px" }}>
+                      <ListAltOutlined />
+                    </Typography>
+                    <Typography sx={{ fontWeight: "bold", fontSize: "14px" }}>
+                      Doctors
+                    </Typography>
+                  </ListItemButton>
+                </Link>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, x: -100 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.7 }}
+              >
+                <Link
+                  to="hospitals"
+                  style={{ textDecoration: "none", color: "black" }}
+                >
+                  <ListItemButton
+                    style={{ display: "flex", gap: "2rem" }}
+                    sx={
+                      nav.pathname.split("/")[2] === "hospitals" && {
+                        backgroundColor: "whitesmoke",
+                      }
+                    }
+                  >
+                    <Typography sx={{ fontWeight: "bold", fontSize: "14px" }}>
+                      <LocalHospital />
+                    </Typography>
+                    <Typography sx={{ fontWeight: "bold", fontSize: "14px" }}>
+                      Hospitals
+                    </Typography>
+                  </ListItemButton>
+                </Link>
+              </motion.div>
+            </>
+          )}
           <motion.div
             initial={{ opacity: 0, x: -100 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
+            transition={{ duration: 0.5, delay: 0.8 }}
           >
             <Link
               to="patients"
@@ -267,7 +307,7 @@ export default function Welcome() {
           <motion.div
             initial={{ opacity: 0, x: -100 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
+            transition={{ duration: 0.5, delay: 0.9 }}
           >
             <Link to="forms" style={{ textDecoration: "none", color: "black" }}>
               <ListItemButton
@@ -290,7 +330,7 @@ export default function Welcome() {
           <motion.div
             initial={{ opacity: 0, x: -100 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.5 }}
+            transition={{ duration: 0.5, delay: 1.0 }}
           >
             <Link
               to="orders"
@@ -316,7 +356,7 @@ export default function Welcome() {
           <motion.div
             initial={{ opacity: 0, x: -100 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.6 }}
+            transition={{ duration: 0.5, delay: 1.1 }}
           >
             <Link
               to="appointments"
@@ -342,7 +382,33 @@ export default function Welcome() {
           <motion.div
             initial={{ opacity: 0, x: -100 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.7 }}
+            transition={{ duration: 0.5, delay: 1.2 }}
+          >
+            <Link
+              to="prescriptions"
+              style={{ textDecoration: "none", color: "black" }}
+            >
+              <ListItemButton
+                style={{ display: "flex", gap: "2rem" }}
+                sx={
+                  nav.pathname.split("/")[2] === "prescriptions" && {
+                    backgroundColor: "whitesmoke",
+                  }
+                }
+              >
+                <Typography sx={{ fontWeight: "bold", fontSize: "14px" }}>
+                  <Notes />
+                </Typography>
+                <Typography sx={{ fontWeight: "bold", fontSize: "14px" }}>
+                  Prescriptions
+                </Typography>
+              </ListItemButton>
+            </Link>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, x: -100 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 1.3 }}
           >
             <ListItemButton
               style={{ display: "flex", gap: "2rem" }}
@@ -430,7 +496,7 @@ export default function Welcome() {
               opacity: 1,
               y: 0,
               transition: {
-                delay: 0.2,
+                delay: 0.4,
                 duration: 0.4,
                 ease: "easeInOut",
               },

@@ -9,6 +9,7 @@ import {
   Input,
   InputAdornment,
   InputLabel,
+  LinearProgress,
   ListItemButton,
   ListItemIcon,
   ListItemText,
@@ -172,7 +173,6 @@ export default function Doctors() {
   };
   const [keyword, setKeyword] = useState("");
   const debouncedFetchData = debounce(() => {
-    console.log("executed debounce");
     getData();
   }, 500);
   async function getData() {
@@ -191,8 +191,8 @@ export default function Doctors() {
         const result = await response.json();
         setFetchedDoctors(result.result);
         setTotalCount(result.totalRecords);
-        setIsLoading(false);
       }
+      // setIsLoading(false);
     } catch (error) {
       console.error("Fetch error:", error);
     }
@@ -212,7 +212,7 @@ export default function Doctors() {
       } else {
         getData();
       }
-      // setIsLoading(false);
+      setIsLoading(false);
     }
     checkAuth();
   }, [page, rowsPerPage, showPrompt.state, specialization]);
@@ -273,20 +273,9 @@ export default function Doctors() {
     toast.success(localStorage.getItem("op"));
   }
   if (isLoading) {
-    return (
-      <>
-        <Skeleton variant="rectangular" height={100} />
-        <Skeleton variant="text" height={80} width={100} />
-        <Skeleton variant="rectangular" height={100} />
-      </>
-    );
+    return <LinearProgress />;
   } else if (!isVerified) {
-    return (
-      <Alert severity="error">
-        You Are Not Authorised to view this page. Kindly{" "}
-        <Link to="/">Login</Link>
-      </Alert>
-    );
+    navigate("/users/dashboard");
   } else if (showPrompt.state) {
     return (
       <ModalContent

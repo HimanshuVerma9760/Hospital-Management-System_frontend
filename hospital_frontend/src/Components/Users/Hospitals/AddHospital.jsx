@@ -18,38 +18,27 @@ import { useEffect, useState } from "react";
 import { Form, useNavigate } from "react-router";
 import useAuth from "../../../util/useAuth";
 import toast, { Toaster } from "react-hot-toast";
+import { addNewHospital, fetchCities } from "../../../util/http";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { debounce } from "lodash";
 const Conn = import.meta.env.VITE_CONN_URI;
 
 export default function AddHospital() {
   const [cities, setCities] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // const [isLoading, setIsLoading] = useState(true);
   const [isVerified, setIsVerified] = useState(true);
   const [submissionProgress, setSubmissionProgress] = useState(false);
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [city, setCity] = useState("");
   const navigate = useNavigate();
-  async function fetchCities() {
-    const response = await fetch(`${Conn}/cities`);
-    if (response.ok) {
-      const result = await response.json();
-      setCities(result.result);
-    } else {
-      console.log("Some error occured");
-    }
-  }
-  useEffect(() => {
-    async function checkAuth() {
-      const verifiedUser = await useAuth();
-      if (!(verifiedUser.response && verifiedUser.role === "Super-Admin")) {
-        setIsVerified(false);
-      } else {
-        setIsLoading(false);
-        fetchCities();
-      }
-    }
-    checkAuth();
-  }, []);
+  const redirect = debounce(() => navigate("/users/hospitals"), 2000);
+
+  const { data: myFetchedCities } = useQuery({
+    queryKey: ["fetch-all-cities"],
+    queryFn: fetchCities,
+    staleTime: 1000 * 60 * 5,
+  });
 
   function onChangeHandler(event) {
     const id = event.target.id || event.target.name;
@@ -89,6 +78,17 @@ export default function AddHospital() {
         break;
     }
   }
+  const { mutate } = useMutation({
+    mutationFn: addNewHospital,
+    onSuccess: () => {
+      setSubmissionProgress(false);
+      toast.loading(
+        "Hospital added successfully, redirecting to hospitals page",
+        { duration: 1900 }
+      );
+      redirect();
+    },
+  });
   async function onSubmitHandler(event) {
     event.preventDefault();
     setSubmissionProgress(true);
@@ -102,42 +102,9 @@ export default function AddHospital() {
       location: location,
       city_id: city,
     };
-    try {
-      const response = await fetch(`${Conn}/hospitals/add`, {
-        method: "post",
-        headers: {
-          "Content-Type": "application/json",
-          authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify(formData),
-      });
-      if (response) {
-        const result = await response.json();
-        setSubmissionProgress(false);
-        if (response.ok) {
-          notify("success");
-          setName("");
-          setLocation("");
-          setCity("");
-        } else {
-          if (response.status === "400") {
-            notify(result.message[0]);
-          } else {
-            notify(result.message);
-          }
-        }
-      }
-    } catch (error) {
-      console.log("error: ", error);
-      notify("Server is down, try again later");
-      setSubmissionProgress(false);
-    }
+    mutate({ formData });
   }
-  const notify = (response) => {
-    response === "success"
-      ? toast.success("Successfully added hospital")
-      : toast.error(response);
-  };
+
   function containsNumber(name) {
     return /\d/.test(name);
   }
@@ -198,11 +165,6 @@ export default function AddHospital() {
       default:
         break;
     }
-  }
-  if (isLoading) {
-    return <LinearProgress />;
-  } else if (!isVerified) {
-    navigate("/users/dashboard");
   }
   return (
     <>
@@ -277,12 +239,12 @@ export default function AddHospital() {
                 onChange={onChangeHandler}
                 onBlur={onBlurHandler}
               >
-                {isLoading ? (
+                {!myFetchedCities ? (
                   <Grid2 display="flex" justifyContent="center">
                     <CircularProgress />
                   </Grid2>
                 ) : (
-                  cities.map((eachCity) => (
+                  myFetchedCities.map((eachCity) => (
                     <MenuItem value={eachCity.id} key={eachCity.id}>
                       {eachCity.name}
                     </MenuItem>

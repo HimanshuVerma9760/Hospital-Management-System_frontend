@@ -16,20 +16,21 @@ import {
 } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { Form, useLocation, useNavigate } from "react-router";
-import useAuth from "../../../util/useAuth";
-import ModalContent from "../../Modal/ModalContent";
+// import useAuth from "../../../util/useAuth";
 import { indigo } from "@mui/material/colors";
 import toast, { Toaster } from "react-hot-toast";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { editHospital, fetchCities } from "../../../util/http";
+import { debounce } from "lodash";
 const Conn = import.meta.env.VITE_CONN_URI;
 
 export default function EditHospital() {
-  const [cities, setCities] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isVerified, setIsVerified] = useState(true);
   const [submissionProgress, setSubmissionProgress] = useState(false);
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [city, setCity] = useState("");
+  const redirect = debounce(() => nav("/users/hospitals"), 2000);
   const [error, setError] = useState({
     nameError: {
       state: false,
@@ -52,10 +53,13 @@ export default function EditHospital() {
       const response = await fetch(`${Conn}/hospitals/${reqId.current}`);
       if (response.ok) {
         const result = await response.json();
+        setIsLoading(false);
         setName(result.hospital.name);
         setCity(Number(result.hospital.city_id));
         setLocation(result.hospital.location);
       } else {
+        setIsLoading(false);
+        toast.error("Some error occured");
         console.log("Some error occured");
       }
     }
@@ -67,27 +71,12 @@ export default function EditHospital() {
     reqId.current = localStorage.getItem("id");
     fetchHospital();
   }, []);
-  async function fetchCities() {
-    const response = await fetch(`${Conn}/cities`);
-    if (response.ok) {
-      const result = await response.json();
-      setCities(result.result);
-    } else {
-      console.log("Some error occured");
-    }
-  }
-  useEffect(() => {
-    async function checkAuth() {
-      const verifiedUser = await useAuth();
-      if (!(verifiedUser.response && verifiedUser.role === "Super-Admin")) {
-        setIsVerified(false);
-      } else {
-        setIsLoading(false);
-        fetchCities();
-      }
-    }
-    checkAuth();
-  }, []);
+
+  const { data: myFetchedCities } = useQuery({
+    queryKey: ["fetch-all-cities"],
+    queryFn: fetchCities,
+    staleTime: 1000 * 60 * 5,
+  });
 
   function onChangeHandler(event) {
     const id = event.target.id || event.target.name;
@@ -175,6 +164,17 @@ export default function EditHospital() {
     }
   }
   const nav = useNavigate();
+  const { mutate } = useMutation({
+    mutationFn: editHospital,
+    onSuccess: () => {
+      toast.loading(
+        "Hospital edited successfully, redirecting to hospitals page",
+        { duration: 1900 }
+      );
+      redirect();
+    },
+  });
+
   async function onSubmitHandler(event) {
     event.preventDefault();
     setSubmissionProgress(true);
@@ -183,47 +183,18 @@ export default function EditHospital() {
       location: location,
       city_id: city,
     };
-    try {
-      const response = await fetch(`${Conn}/hospitals/${reqId.current}`, {
-        method: "put",
-        headers: {
-          "Content-Type": "application/json",
-          authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify(formData),
-      });
-      if (response) {
-        console.log("response");
-        const result = await response.json();
-        setSubmissionProgress(false);
-        if (response.ok) {
-          localStorage.setItem("op", result.message);
-          nav("/users/hospitals");
-        } else if (response.status === "400") {
-          notify(result.message[0]);
-        } else {
-          notify(result.message);
-        }
-      }
-    } catch (error) {
-      console.log("error: ", error);
-      setSubmissionProgress(false);
-      notify("Server is down, try again later!");
-    }
+    mutate({ formData, reqId: reqId.current });
   }
 
-  const notify = (response) => {
-    toast.error(response);
-  };
   if (isLoading) {
-    return <LinearProgress />;
-  } else if (!isVerified) {
-    navigate("/users/dashboard");
-    // return (
-    //   <Alert severity="error">
-    //     You are not authorized to perform this action
-    //   </Alert>
-    // );
+    return (
+      <Skeleton
+        variant="rectangular"
+        width="100%"
+        height={460}
+        sx={{ borderRadius: "10px" }}
+      />
+    );
   }
   localStorage.removeItem("id");
   return (
@@ -310,12 +281,12 @@ export default function EditHospital() {
                 size="medium"
                 onBlur={onBlurHandler}
               >
-                {isLoading ? (
+                {!myFetchedCities ? (
                   <Grid2 display="flex" justifyContent="center">
                     <CircularProgress />
                   </Grid2>
                 ) : (
-                  cities.map((eachCity) => (
+                  myFetchedCities.map((eachCity) => (
                     <MenuItem
                       id={eachCity.id}
                       value={eachCity.id}

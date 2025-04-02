@@ -39,36 +39,32 @@ import { Link } from "react-router";
 import { indigo } from "@mui/material/colors";
 import { debounce } from "lodash";
 import { useCallback } from "react";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { fetchDiseases, getPaginatedPatients } from "../../../util/http";
+import { useDebounce } from "use-debounce";
 const Conn = import.meta.env.VITE_CONN_URI;
 
 export default function Patients() {
   const [disease, setDisease] = useState(0);
-  const [diseases, setDiseases] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [fetchedPatients, setFetchedPatients] = useState([]);
   const [keyword, setKeyword] = useState("");
+  const [searchTerm] = useDebounce(keyword, 600);
+
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
-  const [totalCount, setTotalCount] = React.useState(0);
 
-  const debouncedFetchData = debounce(() => {
-    console.log("executed debounce");
-    fetchData();
-  }, 500);
+  const { data, isPending } = useQuery({
+    queryKey: ["fetch-all-patients", page, rowsPerPage, disease, searchTerm],
+    queryFn: () =>
+      getPaginatedPatients({ page, rowsPerPage, disease, searchTerm }),
+    staleTime: 5000,
+    placeholderData: keepPreviousData,
+  });
+  const totalCount = data?.totalRecords;
 
-  async function fetchDiseases() {
-    const response = await fetch(`${Conn}/diseases`);
-    if (response.ok) {
-      const result = await response.json();
-      setDiseases(result.result);
-    } else {
-      console.log("Some error occured");
-    }
-  }
-
-  useEffect(() => {
-    fetchDiseases();
-  }, []);
+  const { data: diseases } = useQuery({
+    queryKey: ["fetch-all-diseases"],
+    queryFn: fetchDiseases,
+  });
 
   function TablePaginationActions(props) {
     const theme = useTheme();
@@ -143,7 +139,7 @@ export default function Patients() {
     return { id, name, city, hospital, disease, Doctor };
   }
 
-  const rows = fetchedPatients.map((eachPatient) =>
+  const rows = data?.fetchedPatients.map((eachPatient) =>
     createData(
       eachPatient.id,
       eachPatient.name,
@@ -162,33 +158,16 @@ export default function Patients() {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
-  async function fetchData() {
-    try {
-      setIsLoading(true);
-      const response = await fetch(
-        `${Conn}/patients/?page=${
-          page + 1
-        }&limit=${rowsPerPage}&disease=${disease}&keyword=${keyword}`
-      );
-      const result = await response.json();
-      if (response.ok) {
-        setFetchedPatients(result.result);
-        setTotalCount(result.totalRecords);
-      } else {
-        console.error("Error fetching doctors:", result);
-      }
-    } catch (error) {
-      console.error("Fetch error:", error);
-    }
-    setIsLoading(false);
-  }
 
-  useEffect(() => {
-    fetchData();
-  }, [page, rowsPerPage, disease]);
-
-  if (isLoading) {
-    return <LinearProgress />;
+  if (isPending) {
+    return (
+      <Skeleton
+        variant="rectangular"
+        width="100%"
+        height={460}
+        sx={{ borderRadius: "10px" }}
+      />
+    );
   }
 
   return (
@@ -208,10 +187,7 @@ export default function Patients() {
           type="text"
           placeholder="Search here"
           value={keyword}
-          onChange={(e) => {
-            setKeyword(e.target.value);
-            debouncedFetchData();
-          }}
+          onChange={(e) => setKeyword(e.target.value)}
           InputProps={{
             endAdornment: (
               <InputAdornment position="end">
@@ -237,7 +213,7 @@ export default function Patients() {
               <MenuItem id="all" value={0}>
                 Select Disease
               </MenuItem>
-              {diseases.map((eachDisease) => (
+              {diseases?.map((eachDisease) => (
                 <MenuItem
                   key={eachDisease.id}
                   id={eachDisease.name}

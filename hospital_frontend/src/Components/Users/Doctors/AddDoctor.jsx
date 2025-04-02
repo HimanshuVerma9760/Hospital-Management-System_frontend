@@ -18,12 +18,17 @@ import { useEffect, useState } from "react";
 import { Form, useNavigate } from "react-router";
 import useAuth from "../../../util/useAuth";
 import toast, { Toaster } from "react-hot-toast";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import {
+  addNewDoctor,
+  fetchCities,
+  fetchHospitals,
+  fetchSpecializations,
+} from "../../../util/http";
+import { debounce } from "lodash";
 const Conn = import.meta.env.VITE_CONN_URI;
 
 export default function AddDoctor() {
-  const [cities, setCities] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isVerified, setIsVerified] = useState(true);
   const [submissionProgress, setSubmissionProgress] = useState(false);
   const [name, setName] = useState("");
   const [specialization, setSpecialization] = useState("");
@@ -33,50 +38,27 @@ export default function AddDoctor() {
   const [hospital, setHospital] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [hospitals, setHospitals] = useState([]);
-  const [specializations, setSpecializations] = useState([]);
+  const redirect = debounce(() => navigate("/users/doctors"), 2000);
+
   const navigate = useNavigate();
-  async function fetchCities() {
-    const response = await fetch(`${Conn}/cities`);
-    if (response.ok) {
-      const result = await response.json();
-      setCities(result.result);
-    } else {
-      console.log("Some error occured");
-    }
-  }
-  async function fetchHospitals() {
-    const response = await fetch(`${Conn}/hospitals/get-all`);
-    if (response.ok) {
-      const result = await response.json();
-      setHospitals(result.result);
-    } else {
-      console.log("Some error occured");
-    }
-  }
-  async function fetchSpecializations() {
-    const response = await fetch(`${Conn}/specializations`);
-    if (response.ok) {
-      const result = await response.json();
-      setSpecializations(result.result);
-    } else {
-      console.log("Some error occured");
-    }
-  }
-  useEffect(() => {
-    async function checkAuth() {
-      const verifiedUser = await useAuth();
-      if (!(verifiedUser.response && verifiedUser.role === "Super-Admin")) {
-        setIsVerified(false);
-      } else {
-        setIsLoading(false);
-        fetchCities();
-        fetchHospitals();
-        fetchSpecializations();
-      }
-    }
-    checkAuth();
-  }, []);
+
+  const { data: myFetchedHospitals } = useQuery({
+    queryKey: ["fetch-all-hospitals"],
+    queryFn: fetchHospitals,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const { data: myFetchedSpecializations } = useQuery({
+    queryKey: ["fetch-all-specializations"],
+    queryFn: fetchSpecializations,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const { data: myFetchedCities } = useQuery({
+    queryKey: ["fetch-all-cities"],
+    queryFn: fetchCities,
+    staleTime: 1000 * 60 * 5,
+  });
 
   function onChangeHandler(event) {
     const id = event.target.id || event.target.name;
@@ -281,17 +263,6 @@ export default function AddDoctor() {
           }));
         }
         break;
-      case "hospital":
-        if (value.length === 0) {
-          setError((prevState) => ({
-            ...prevState,
-            hospitalError: {
-              state: true,
-              message: "Choose a hospital from the menu",
-            },
-          }));
-        }
-        break;
       case "confirmPassword":
         if (value.length < 8) {
           setError((prevState) => ({
@@ -342,6 +313,18 @@ export default function AddDoctor() {
         break;
     }
   }
+
+  const { mutate } = useMutation({
+    mutationFn: addNewDoctor,
+    onSuccess: () => {
+      setSubmissionProgress(false);
+      toast.loading("Successfully added doctor, redirecting to doctor's page", {
+        duration: 1900,
+      });
+      redirect();
+    },
+  });
+
   async function onSubmitHandler(event) {
     event.preventDefault();
     setSubmissionProgress(true);
@@ -355,49 +338,9 @@ export default function AddDoctor() {
       fees: Number(fees),
     };
 
-    try {
-      const response = await fetch(`${Conn}/doctors/add`, {
-        method: "post",
-        headers: {
-          "Content-Type": "application/json",
-          authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify(formData),
-      });
-      if (response) {
-        const result = await response.json();
-        setSubmissionProgress(false);
-        if (response.ok) {
-          notify("success");
-          setName("");
-          setSpecialization("");
-          setCity("");
-          setHospital("");
-          setFees("");
-        } else {
-          if (response.status === "400") {
-            notify(result.message[0]);
-          } else {
-            notify(result.message);
-          }
-        }
-      }
-    } catch (error) {
-      console.log("error: ", error);
-      notify("Server is down, try again later");
-      setSubmissionProgress(false);
-    }
+    mutate({ formData });
   }
-  const notify = (response) => {
-    response === "success"
-      ? toast.success("Successfully added doctor")
-      : toast.error(response);
-  };
-  if (isLoading) {
-    return <LinearProgress />;
-  } else if (!isVerified) {
-    navigate("/users/dashboard");
-  }
+
   return (
     <>
       <Box
@@ -512,12 +455,12 @@ export default function AddDoctor() {
                 onBlur={onBlurHandler}
                 size="medium"
               >
-                {isLoading ? (
+                {!myFetchedSpecializations ? (
                   <Grid2 display="flex" justifyContent="center">
                     <CircularProgress />
                   </Grid2>
                 ) : (
-                  specializations.map((eachSpecialization) => (
+                  myFetchedSpecializations.map((eachSpecialization) => (
                     <MenuItem
                       id={eachSpecialization.id}
                       value={eachSpecialization.id}
@@ -544,12 +487,12 @@ export default function AddDoctor() {
                 onBlur={onBlurHandler}
                 size="medium"
               >
-                {isLoading ? (
+                {!myFetchedCities ? (
                   <Grid2 display="flex" justifyContent="center">
                     <CircularProgress />
                   </Grid2>
                 ) : (
-                  cities.map((eachCity) => (
+                  myFetchedCities.map((eachCity) => (
                     <MenuItem
                       id={eachCity.id}
                       value={eachCity.id}
@@ -574,12 +517,12 @@ export default function AddDoctor() {
                 onBlur={onBlurHandler}
                 size="medium"
               >
-                {isLoading ? (
+                {!myFetchedHospitals ? (
                   <Grid2 display="flex" justifyContent="center">
                     <CircularProgress />
                   </Grid2>
                 ) : (
-                  hospitals.map((eachHospital) => (
+                  myFetchedHospitals.map((eachHospital) => (
                     <MenuItem value={eachHospital.id} key={eachHospital.id}>
                       {eachHospital.name}
                     </MenuItem>

@@ -219,7 +219,14 @@ export default function Orders() {
   }
 
   if (isLoading) {
-    return <LinearProgress />;
+    return (
+      <Skeleton
+        variant="rectangular"
+        width="100%"
+        height={460}
+        sx={{ borderRadius: "10px" }}
+      />
+    );
   }
   if (isCard.state) {
     return <CheckoutPage order={isCard.orderDetails} />;

@@ -1,6 +1,13 @@
 import { createBrowserRouter } from "react-router-dom";
 import { RouterProvider } from "react-router";
-import { createTheme, CssBaseline } from "@mui/material";
+import {
+  CircularProgress,
+  createTheme,
+  CssBaseline,
+  Grid2,
+  Skeleton,
+  Typography,
+} from "@mui/material";
 import { grey } from "@mui/material/colors";
 import { ThemeProvider } from "@emotion/react";
 import Welcome from "./Components/Users/Welcome";
@@ -30,6 +37,10 @@ import "./App.css";
 import Dashboard from "./Components/Users/Dashboard";
 import Prescriptions from "./Components/Users/Prescriptions/Prescriptions";
 import AddPrescription from "./Components/Users/Prescriptions/AddPrescription";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "./util/http";
+import { DoctorSecurityLoader } from "./util/doctorSecurityLoaders/DoctorSecurityLoader";
+import { RouteAuthLoader } from "./util/routeAuthGuard/RouteAuthLoader";
 
 export default function App() {
   const theme = createTheme({
@@ -47,7 +58,12 @@ export default function App() {
     },
     {
       path: "/users",
+      id: "rootUser",
+      loader: RouteAuthLoader,
       element: <Welcome />,
+      hydrateFallbackElement: (
+        <Skeleton width="70%" height={500} sx={{ margin: "auto" }} />
+      ),
       children: [
         {
           path: "dashboard",
@@ -59,26 +75,47 @@ export default function App() {
         },
         {
           path: "doctors",
+          loader: DoctorSecurityLoader,
+          hydrateFallbackElement: (
+            <Skeleton width="70%" height={500} sx={{ margin: "auto" }} />
+          ),
           element: <Doctors />,
         },
         {
           path: "doctors/add",
+          loader: DoctorSecurityLoader,
+          hydrateFallbackElement: (
+            <Skeleton width="70%" height={500} sx={{ margin: "auto" }} />
+          ),
           element: <AddDoctor />,
         },
         {
           path: "doctors/edit",
+          loader: DoctorSecurityLoader,
           element: <EditDoctor />,
         },
         {
           path: "hospitals",
+          loader: DoctorSecurityLoader,
+          hydrateFallbackElement: (
+            <Skeleton width="70%" height={500} sx={{ margin: "auto" }} />
+          ),
           element: <Hospitals />,
         },
         {
           path: "hospitals/add",
+          loader: DoctorSecurityLoader,
+          hydrateFallbackElement: (
+            <Skeleton width="70%" height={500} sx={{ margin: "auto" }} />
+          ),
           element: <AddHospital />,
         },
         {
           path: "hospitals/edit",
+          loader: DoctorSecurityLoader,
+          hydrateFallbackElement: (
+            <Skeleton width="70%" height={500} sx={{ margin: "auto" }} />
+          ),
           element: <EditHospital />,
         },
         {
@@ -133,7 +170,9 @@ export default function App() {
     <>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <RouterProvider router={router} />
+        <QueryClientProvider client={queryClient}>
+          <RouterProvider router={router} />
+        </QueryClientProvider>
       </ThemeProvider>
     </>
   );

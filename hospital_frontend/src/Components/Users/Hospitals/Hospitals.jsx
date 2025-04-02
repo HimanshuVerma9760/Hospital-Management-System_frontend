@@ -48,15 +48,18 @@ import { Link, useNavigate } from "react-router";
 import { indigo } from "@mui/material/colors";
 import ModalContent from "../../Modal/ModalContent";
 import toast, { Toaster } from "react-hot-toast";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { getAllPaginatedHospitals, queryClient } from "../../../util/http";
+import { useDebounce } from "use-debounce";
 const Conn = import.meta.env.VITE_CONN_URI;
 
 export default function Hospitals() {
-  const [isVerified, setIsVerified] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
   const [fetchedHospitals, setFetchedHospitals] = useState([]);
   const [page, setPage] = React.useState(0);
+  const [keyword, setKeyword] = useState("");
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const [totalCount, setTotalCount] = React.useState(0);
+  const [searchTerm] = useDebounce(keyword, 600);
   const [showPrompt, setShowPrompt] = useState({
     state: false,
     type: "",
@@ -146,17 +149,6 @@ export default function Hospitals() {
     return { id, name, status, location, city, Doctors };
   }
 
-  const rows = fetchedHospitals.map((eachHospital) =>
-    createData(
-      eachHospital.id,
-      eachHospital.name,
-      eachHospital.status,
-      eachHospital.location,
-      eachHospital.city.name,
-      eachHospital.doctor.length
-    )
-  );
-
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -165,60 +157,13 @@ export default function Hospitals() {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
-  const [keyword, setKeyword] = useState("");
 
-  const debouncedFetchData = debounce(() => {
-    getData();
-  }, 500);
-
-  async function getData() {
-    try {
-      const response = await fetch(
-        `${Conn}/hospitals/get/?page=${
-          page + 1
-        }&limit=${rowsPerPage}&keyword=${keyword}`,
-        {
-          headers: {
-            authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-      const result = await response.json();
-      if (response.ok) {
-        console.log(result.result);
-        setFetchedHospitals(result.result);
-        setTotalCount(result.totalRecords);
-      } else {
-        console.error("Error fetching doctors:", result);
-        notify("Error fetching doctors!");
-      }
-    } catch (error) {
-      console.error("Fetch error:", error);
-      notify("Server is down, try again later!");
-    }
-    setIsLoading(false);
-  }
-
-  async function checkAuth() {
-    const verfiedUser = await useAuth();
-    if (
-      !(
-        verfiedUser.response &&
-        (verfiedUser.role === "Super-Admin" || verfiedUser.role === "Admin")
-      )
-    ) {
-      setIsVerified(false);
-    }
-  }
-
-  useEffect(() => {
-    setIsLoading(true);
-    checkAuth();
-  }, []);
-
-  useEffect(() => {
-    getData();
-  }, [page, rowsPerPage, showPrompt.state]);
+  const { data, isLoading, isError, error, isPlaceholderData } = useQuery({
+    queryKey: ["paginated-hospitals", page, rowsPerPage, searchTerm],
+    queryFn: () => getAllPaginatedHospitals({ page, rowsPerPage, searchTerm }),
+    staleTime: 5000,
+    placeholderData: keepPreviousData,
+  });
 
   const notify = (response) => {
     if (response === "success") {
@@ -237,6 +182,9 @@ export default function Hospitals() {
         caption: "",
       },
     }));
+    queryClient.invalidateQueries({
+      queryKey: ["paginated-hospitals", page, rowsPerPage, searchTerm],
+    });
   }
   const navigate = useNavigate();
 
@@ -268,11 +216,29 @@ export default function Hospitals() {
     localStorage.setItem("id", id);
     navigate("edit");
   }
+  let rows = [];
+  if (data) {
+    rows = data.fetchedHospitals.map((eachHospital) =>
+      createData(
+        eachHospital.id,
+        eachHospital.name,
+        eachHospital.status,
+        eachHospital.location,
+        eachHospital.city.name,
+        eachHospital.doctor.length
+      )
+    );
+  }
 
   if (isLoading) {
-    return <LinearProgress />;
-  } else if (!isVerified) {
-    navigate("/users/dashboard");
+    return (
+      <Skeleton
+        variant="rectangular"
+        width="100%"
+        height={460}
+        sx={{ borderRadius: "10px" }}
+      />
+    );
   } else if (showPrompt.state) {
     return (
       <ModalContent
@@ -308,7 +274,7 @@ export default function Hospitals() {
           value={keyword}
           onChange={(e) => {
             setKeyword(e.target.value);
-            debouncedFetchData();
+            // debouncedFetchData();
           }}
           InputProps={{
             endAdornment: (
@@ -484,7 +450,7 @@ export default function Hospitals() {
               <TablePagination
                 rowsPerPageOptions={[5, 10, 25, { label: "All", value: -1 }]}
                 colSpan={5}
-                count={totalCount}
+                count={data?.totalRecords}
                 rowsPerPage={rowsPerPage}
                 page={page}
                 slotProps={{
@@ -497,6 +463,7 @@ export default function Hospitals() {
                 onPageChange={handleChangePage}
                 onRowsPerPageChange={handleChangeRowsPerPage}
                 ActionsComponent={TablePaginationActions}
+                // disabled={isPlaceholderData || !data?.hasMore}
               />
             </TableRow>
           </TableFooter>

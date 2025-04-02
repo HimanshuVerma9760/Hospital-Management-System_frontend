@@ -35,7 +35,6 @@ export default function EditPrescription({
   const [medicine, setMedicine] = useState([]);
   const [patients, setPatients] = useState([]);
   const [notes, setNotes] = useState(prescription.notes);
-  //   const navigate = useNavigate();
   const [medicines, setMedicines] = useState([]);
   const doctor = useRef({ name: "", id: "", userId: "" });
   const [error, setError] = useState({
@@ -60,6 +59,7 @@ export default function EditPrescription({
       );
     }
   }, [medicines]);
+
   async function fetchPatients() {
     const response = await fetch(`${Conn}/patients/get-all`);
     if (response.ok) {
@@ -221,7 +221,14 @@ export default function EditPrescription({
   }
 
   if (isLoading) {
-    return <LinearProgress />;
+     return (
+          <Skeleton
+            variant="rectangular"
+            width="100%"
+            height={460}
+            sx={{ borderRadius: "10px" }}
+          />
+        );
   } else if (!isVerified) {
     return (
       <Alert severity="error">

@@ -13,6 +13,7 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 import { Cancel, Image, Upload } from "@mui/icons-material";
+import { queryClient } from "../../util/http";
 const Conn = import.meta.env.VITE_CONN_URI;
 
 const ModalContent = ({ isOpen, onClose, message, btn, type, metaData }) => {
@@ -140,7 +141,7 @@ const ModalContent = ({ isOpen, onClose, message, btn, type, metaData }) => {
   }
   async function deleteHospitalHandler() {
     const response = await fetch(
-      `${Conn}/hospitals/delete/soft/${message.id}}`,
+      `${Conn}/hospitals/delete/soft/${message.id}`,
       {
         method: "delete",
         headers: {
@@ -148,7 +149,7 @@ const ModalContent = ({ isOpen, onClose, message, btn, type, metaData }) => {
         },
       }
     );
-    if (response) {
+    if (response.ok) {
       const result = await response.json();
     }
     onClose();
@@ -276,11 +277,6 @@ const ModalContent = ({ isOpen, onClose, message, btn, type, metaData }) => {
   }
   return (
     <Portal onClose={onClose}>
-      <Grid2 sx={{ display: "flex", justifyContent: "right" }}>
-        <IconButton sx={{ margin: 0, padding: 0 }} onClick={onClose}>
-          <Cancel />
-        </IconButton>
-      </Grid2>
       <Box
         sx={{
           display: "flex",
@@ -406,12 +402,12 @@ const ModalContent = ({ isOpen, onClose, message, btn, type, metaData }) => {
                           color: "gray",
                           paddingTop: "3rem",
                           paddingBottom: "3rem",
-                          display:"flex",
-                          flexDirection:"column",
-                          gap:"0.5rem"
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "0.5rem",
                         }}
                       >
-                        <Image sx={{alignSelf:"center"}}/>
+                        <Image sx={{ alignSelf: "center" }} />
                         Click to upload
                       </Typography>
                     )}
@@ -445,7 +441,7 @@ const ModalContent = ({ isOpen, onClose, message, btn, type, metaData }) => {
             display="flex"
             gap="1rem"
             justifyContent="center"
-            sx={{ padding: "2rem" }}
+            // sx={{ padding: "2rem" }}
           >
             <Button variant="contained" onClick={clickHandler}>
               {btn}

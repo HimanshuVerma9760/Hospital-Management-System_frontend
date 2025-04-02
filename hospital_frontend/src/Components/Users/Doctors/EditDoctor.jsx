@@ -18,35 +18,51 @@ import { useEffect, useRef, useState } from "react";
 import { Form, useLocation, useNavigate } from "react-router";
 import useAuth from "../../../util/useAuth";
 import ModalContent from "../../Modal/ModalContent";
+import { debounce } from "lodash";
 import toast, { Toaster } from "react-hot-toast";
+import {
+  editExistingDoctorDetails,
+  fetchCities,
+  fetchHospitals,
+  fetchSpecializations,
+} from "../../../util/http";
+import { useMutation, useQuery } from "@tanstack/react-query";
 const Conn = import.meta.env.VITE_CONN_URI;
 
 export default function EditDoctor() {
-  const [cities, setCities] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isVerified, setIsVerified] = useState(true);
+  // const [cities, setCities] = useState([]);
+  // const [isLoading, setIsLoading] = useState(false);
+  // const [isVerified, setIsVerified] = useState(true);
   const [submissionProgress, setSubmissionProgress] = useState(false);
   const [name, setName] = useState("");
   const [specialization, setSpecialization] = useState("");
   const [city, setCity] = useState("");
   const [fees, setFees] = useState("");
   const [hospital, setHospital] = useState("");
-  const [hospitals, setHospitals] = useState([]);
-  const [message, setMessage] = useState("");
-  const [specializations, setSpecializations] = useState([]);
+  // const [hospitals, setHospitals] = useState([]);
+  // const [message, setMessage] = useState("");
+  // const [specializations, setSpecializations] = useState([]);
   const navigate = useNavigate();
 
   const reqId = useRef();
 
-  async function fetchSpecializations() {
-    const response = await fetch(`${Conn}/specializations`);
-    if (response.ok) {
-      const result = await response.json();
-      setSpecializations(result.result);
-    } else {
-      console.log("Some error occured");
-    }
-  }
+  const { data: myFetchedHospitals } = useQuery({
+    queryKey: ["fetch-all-hospitals"],
+    queryFn: fetchHospitals,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const { data: myFetchedSpecializations } = useQuery({
+    queryKey: ["fetch-all-specializations"],
+    queryFn: fetchSpecializations,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const { data: myFetchedCities } = useQuery({
+    queryKey: ["fetch-all-cities"],
+    queryFn: fetchCities,
+    staleTime: 1000 * 60 * 5,
+  });
 
   useEffect(() => {
     async function fetchDoctor() {
@@ -68,39 +84,8 @@ export default function EditDoctor() {
       return;
     }
     reqId.current = localStorage.getItem("id");
-    fetchSpecializations();
+    removeId();
     fetchDoctor();
-  }, []);
-  async function fetchCities() {
-    const response = await fetch(`${Conn}/cities`);
-    if (response.ok) {
-      const result = await response.json();
-      setCities(result.result);
-    } else {
-      console.log("Some error occured");
-    }
-  }
-  async function fetchHospitals() {
-    const response = await fetch(`${Conn}/hospitals/get-all`);
-    if (response.ok) {
-      const result = await response.json();
-      setHospitals(result.result);
-    } else {
-      console.log("Some error occured");
-    }
-  }
-  useEffect(() => {
-    async function checkAuth() {
-      const verifiedUser = await useAuth();
-      if (!(verifiedUser.response && verifiedUser.role === "Super-Admin")) {
-        setIsVerified(false);
-      } else {
-        setIsLoading(false);
-        fetchCities();
-        fetchHospitals();
-      }
-    }
-    checkAuth();
   }, []);
 
   function onChangeHandler(event) {
@@ -161,6 +146,7 @@ export default function EditDoctor() {
         break;
     }
   }
+  
   function containsNumber(name) {
     return /\d/.test(name);
   }
@@ -271,6 +257,20 @@ export default function EditDoctor() {
   }
   const nav = useNavigate();
 
+  const { mutate } = useMutation({
+    mutationFn: editExistingDoctorDetails,
+    onSuccess: () => {
+      setSubmissionProgress(false);
+      toast.loading(
+        "Doctor Updated Successfully, redirecting to doctors page",
+        { duration: 1900 }
+      );
+      redirect();
+    },
+  });
+  const redirect = debounce(() => {
+    nav("/users/doctors");
+  }, 2000);
   async function onSubmitHandler(event) {
     event.preventDefault();
     setSubmissionProgress(true);
@@ -281,42 +281,16 @@ export default function EditDoctor() {
       hospital_id: hospital,
       fees: Number(fees),
     };
-    try {
-      const response = await fetch(`${Conn}/doctors/update/${reqId.current}`, {
-        method: "put",
-        headers: {
-          "Content-Type": "application/json",
-          authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify(formData),
-      });
-      if (response) {
-        const result = await response.json();
-        setSubmissionProgress(false);
-        if (response.ok) {
-          localStorage.setItem("op", result.message);
-          nav("/users/doctors");
-        } else if (response.status === "400") {
-          notify(result.message[0]);
-        } else {
-          notify(result.message);
-        }
-      }
-    } catch (error) {
-      console.log("error: ", error);
-      notify("Server is down, try again later!");
-      setSubmissionProgress(false);
-    }
+    mutate({ formData, reqID: reqId.current });
   }
-  const notify = (response) => {
-    toast.error(response);
-  };
-  if (isLoading) {
-    return <LinearProgress />;
-  } else if (!isVerified) {
-    navigate("/users/dashboard");
-  }
-  localStorage.removeItem("id");
+  // const notify = (response) => {
+  //   toast.error(response);
+  // };
+
+  const removeId = debounce(() => {
+    localStorage.removeItem("id");
+  }, 2000);
+
   return (
     <>
       <Box
@@ -340,12 +314,10 @@ export default function EditDoctor() {
             justifyContent="center"
             color="red"
           >
-            {submissionProgress ? (
+            {submissionProgress && (
               <Grid2 display="flex" justifyContent="center">
                 <CircularProgress />
               </Grid2>
-            ) : (
-              message
             )}
           </Typography>
         </Grid2>
@@ -397,12 +369,12 @@ export default function EditDoctor() {
                 size="medium"
                 onBlur={onBlurHandler}
               >
-                {isLoading ? (
+                {!myFetchedSpecializations ? (
                   <Grid2 display="flex" justifyContent="center">
                     <CircularProgress />
                   </Grid2>
                 ) : (
-                  specializations.map((eachSpecialization) => (
+                  myFetchedSpecializations.map((eachSpecialization) => (
                     <MenuItem
                       id={eachSpecialization.name}
                       value={eachSpecialization.id}
@@ -429,12 +401,12 @@ export default function EditDoctor() {
                 size="medium"
                 onBlur={onBlurHandler}
               >
-                {isLoading ? (
+                {!myFetchedCities ? (
                   <Grid2 display="flex" justifyContent="center">
                     <CircularProgress />
                   </Grid2>
                 ) : (
-                  cities.map((eachCity) => (
+                  myFetchedCities.map((eachCity) => (
                     <MenuItem
                       id={eachCity.id}
                       value={eachCity.id}
@@ -459,12 +431,12 @@ export default function EditDoctor() {
                 size="medium"
                 onBlur={onBlurHandler}
               >
-                {isLoading ? (
+                {!myFetchedHospitals ? (
                   <Grid2 display="flex" justifyContent="center">
                     <CircularProgress />
                   </Grid2>
                 ) : (
-                  hospitals.map((eachHospital) => (
+                  myFetchedHospitals.map((eachHospital) => (
                     <MenuItem
                       id={eachHospital.id}
                       value={eachHospital.id}

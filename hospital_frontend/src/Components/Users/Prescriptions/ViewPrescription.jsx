@@ -57,6 +57,14 @@ export default function ViewPrescription({ prescription, toggleViewMode }) {
             ))}
           </Grid2>
         </Grid2>
+        <Grid2 display="flex" flexDirection="column">
+          <Typography variant="p" sx={{ fontWeight: "bold" }}>
+            Additional notes:
+          </Typography>
+          <Grid2 sx={{ flexShrink: 1 }}>
+            {prescription.notes}
+          </Grid2>
+        </Grid2>
       </Grid2>
     </>
   );

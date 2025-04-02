@@ -39,6 +39,7 @@ const Conn = import.meta.env.VITE_CONN_URI;
 
 export default function Prescriptions() {
   const [myPrescriptions, setMyPrescriptions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isVerified, setIsVerified] = useState(false);
   const [viewFormMode, setViewFormMode] = useState({ state: false, id: "" });
   const [editMode, setEditMode] = useState({ state: false, id: "" });
@@ -79,6 +80,7 @@ export default function Prescriptions() {
       formatPrescription();
       setTotalCount(result.totalRecords);
     }
+    setIsLoading(false);
   }
   const debouncedFetchData = debounce(() => {
     getPrescriptionsData();
@@ -181,8 +183,17 @@ export default function Prescriptions() {
   useEffect(() => {
     getPrescriptionsData();
   }, [page, rowsPerPage]);
-
-  if (!isVerified) {
+  if (isLoading) {
+    return (
+      <Skeleton
+        variant="rectangular"
+        width="100%"
+        height={460}
+        sx={{ borderRadius: "10px" }}
+      />
+    );
+  }
+  else if (!isVerified) {
     return (
       <Alert severity="error">
         You are not authorised to access this page.

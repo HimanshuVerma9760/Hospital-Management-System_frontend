@@ -3,6 +3,7 @@ import useAuth from "../../../util/useAuth";
 import {
   Alert,
   Button,
+  CircularProgress,
   FormControl,
   Grid2,
   Icon,
@@ -22,7 +23,7 @@ import {
   Typography,
 } from "@mui/material";
 import * as React from "react";
-import PropTypes from "prop-types";
+import PropTypes, { exact } from "prop-types";
 import { useTheme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import Table from "@mui/material/Table";
@@ -47,18 +48,23 @@ import {
   ToggleOff,
   ToggleOn,
 } from "@mui/icons-material";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useNavigation } from "react-router";
 import ModalContent from "../../Modal/ModalContent";
 import { deepOrange, indigo } from "@mui/material/colors";
 import toast, { Toaster } from "react-hot-toast";
 import { debounce } from "lodash";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import {
+  fetchSpecializations,
+  getPaginatedDoctors,
+  queryClient,
+} from "../../../util/http";
+import { useDebounce } from "use-debounce";
 const Conn = import.meta.env.VITE_CONN_URI;
 
 export default function Doctors() {
   const [specialization, setSpecialization] = useState(0);
   const navigate = useNavigate();
-  const [isVerified, setIsVerified] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
   const [fetchedDoctors, setFetchedDoctors] = useState([]);
   const [showPrompt, setShowPrompt] = useState({
     state: false,
@@ -68,7 +74,9 @@ export default function Doctors() {
       caption: "",
     },
   });
+
   const reqId = React.useRef();
+
   useEffect(() => {
     if (localStorage.getItem("op")) {
       notify();
@@ -137,6 +145,7 @@ export default function Doctors() {
       </Box>
     );
   }
+  
   TablePaginationActions.propTypes = {
     count: PropTypes.number.isRequired,
     onPageChange: PropTypes.func.isRequired,
@@ -159,9 +168,11 @@ export default function Doctors() {
     )
   );
 
+  const [keyword, setKeyword] = useState("");
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const [totalCount, setTotalCount] = React.useState(0);
+  const [searchTerm] = useDebounce(keyword, 600);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -171,52 +182,23 @@ export default function Doctors() {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
-  const [keyword, setKeyword] = useState("");
-  const debouncedFetchData = debounce(() => {
-    getData();
-  }, 500);
-  async function getData() {
-    try {
-      const response = await fetch(
-        `${Conn}/doctors/get-doctors/?page=${
-          page + 1
-        }&limit=${rowsPerPage}&specialization=${specialization}&keyword=${keyword}`,
-        {
-          headers: {
-            authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-      if (response.ok) {
-        const result = await response.json();
-        setFetchedDoctors(result.result);
-        setTotalCount(result.totalRecords);
-      }
-      // setIsLoading(false);
-    } catch (error) {
-      console.error("Fetch error:", error);
-    }
+
+  const { data, isPending, isError, error, isPlaceholderData } = useQuery({
+    queryKey: [
+      "paginated-doctors",
+      page,
+      rowsPerPage,
+      specialization,
+      searchTerm,
+    ],
+    queryFn: () =>
+      getPaginatedDoctors({ page, rowsPerPage, specialization, searchTerm }),
+    staleTime: 5000,
+    placeholderData: keepPreviousData,
+  });
+  function searchChangeHandler(e) {
+    setKeyword(e.target.value);
   }
-
-  useEffect(() => {
-    setIsLoading(true);
-    async function checkAuth() {
-      const verfiedUser = await useAuth();
-      if (
-        !(
-          verfiedUser.response &&
-          (verfiedUser.role === "Super-Admin" || verfiedUser.role === "Admin")
-        )
-      ) {
-        setIsVerified(false);
-      } else {
-        getData();
-      }
-      setIsLoading(false);
-    }
-    checkAuth();
-  }, [page, rowsPerPage, showPrompt.state, specialization]);
-
   function onClose() {
     setShowPrompt((prevState) => ({
       ...prevState,
@@ -226,6 +208,10 @@ export default function Doctors() {
         caption: "",
       },
     }));
+    queryClient.invalidateQueries({
+      queryKey: ["paginated-doctors"],
+      exact: false,
+    });
   }
   function deleteHandler(id) {
     reqId.current = id;
@@ -255,27 +241,34 @@ export default function Doctors() {
     localStorage.setItem("id", id);
     navigate("edit");
   }
-  const [specializations, setSpecializations] = useState([]);
-  useEffect(() => {
-    async function getSpecialization() {
-      const response = await fetch(`${Conn}/specializations`);
-      if (response.ok) {
-        const result = await response.json();
-        setSpecializations(result.result);
-      } else {
-        console.error("Error fetching specializations:", result);
-      }
-    }
-    getSpecialization();
-  }, []);
+  const { data: specializations } = useQuery({
+    queryKey: ["fetch-all-specializations"],
+    queryFn: fetchSpecializations,
+    staleTime: 1000 * 60 * 5,
+  });
 
   function notify() {
     toast.success(localStorage.getItem("op"));
   }
-  if (isLoading) {
-    return <LinearProgress />;
-  } else if (!isVerified) {
-    navigate("/users/dashboard");
+  useEffect(() => {
+    if (data) {
+      setFetchedDoctors(data.fetchedDoctors);
+      setTotalCount(data.totalRecords);
+    }
+  }, [data]);
+
+  if (isPending) {
+    return (
+      <Skeleton
+        variant="rectangular"
+        width="100%"
+        height={460}
+        sx={{ borderRadius: "10px" }}
+      />
+    );
+  } else if (isError) {
+    toast.error(error.message);
+    console.log("Error: ", error);
   } else if (showPrompt.state) {
     return (
       <ModalContent
@@ -313,10 +306,7 @@ export default function Doctors() {
           type="text"
           placeholder="Search here"
           value={keyword}
-          onChange={(e) => {
-            setKeyword(e.target.value);
-            debouncedFetchData();
-          }}
+          onChange={(e) => searchChangeHandler(e)}
           InputProps={{
             endAdornment: (
               <InputAdornment position="end">
@@ -342,15 +332,21 @@ export default function Doctors() {
               <MenuItem id="all" value={0}>
                 Select Specialization
               </MenuItem>
-              {specializations.map((eachSpecialization) => (
-                <MenuItem
-                  id={eachSpecialization.name}
-                  key={eachSpecialization.id}
-                  value={eachSpecialization.id}
-                >
-                  {eachSpecialization.name}
-                </MenuItem>
-              ))}
+              {!specializations ? (
+                <Grid2 display="flex" justifyContent="center">
+                  <CircularProgress />
+                </Grid2>
+              ) : (
+                specializations.map((eachSpecialization) => (
+                  <MenuItem
+                    id={eachSpecialization.name}
+                    key={eachSpecialization.id}
+                    value={eachSpecialization.id}
+                  >
+                    {eachSpecialization.name}
+                  </MenuItem>
+                ))
+              )}
             </Select>
           </FormControl>
           <Link to="add" style={{ textDecoration: "none", color: "black" }}>
@@ -534,6 +530,7 @@ export default function Doctors() {
                 onPageChange={handleChangePage}
                 onRowsPerPageChange={handleChangeRowsPerPage}
                 ActionsComponent={TablePaginationActions}
+                // disabled={isPlaceholderData || !data?.hasMore}
               />
             </TableRow>
           </TableFooter>

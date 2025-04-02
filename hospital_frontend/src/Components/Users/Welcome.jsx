@@ -21,6 +21,7 @@ import {
   Tooltip,
   MenuItem,
   Menu,
+  CircularProgress,
 } from "@mui/material";
 import HomeIcon from "@mui/icons-material/Home";
 import {
@@ -34,22 +35,32 @@ import {
   Notes,
   Person,
 } from "@mui/icons-material";
-import { Link, Outlet, useLocation, useNavigate } from "react-router";
+import {
+  Link,
+  Outlet,
+  useLocation,
+  useNavigate,
+  useNavigation,
+  useRouteLoaderData,
+} from "react-router";
 import useAuth from "../../util/useAuth";
 import { deepOrange, indigo } from "@mui/material/colors";
 import ModalContent from "../Modal/ModalContent";
 import { AnimatePresence, motion } from "motion/react";
-const FOLDER_PATH = import.meta.env.VITE_FOLDER_URI;
+import { useQuery } from "@tanstack/react-query";
+import { getUser, queryClient } from "../../util/http";
+import toast, { Toaster } from "react-hot-toast";
 const Conn = import.meta.env.VITE_CONN_URI;
 
 const drawerWidth = 240;
 
 export default function Welcome() {
   const [isVerified, setIsVerified] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  // const [isLoading, setIsLoading] = useState(true);
   const [showPrompt, setShowPrompt] = useState(false);
   const [profilePicture, setProfilePicture] = useState(null);
-
+  const { user } = useRouteLoaderData("rootUser");
+  const navigation = useNavigation();
   const nav = useLocation();
   const navigate = useNavigate();
 
@@ -62,84 +73,26 @@ export default function Welcome() {
   const handleClosePrompt = () => {
     setAnchorEl(null);
   };
-  async function getUser(id) {
-    const response = await fetch(`${Conn}/get/user/${id}`);
-    if (response.ok) {
-      const result = await response.json();
-      if (result) {
-        setProfilePicture(`${FOLDER_PATH}/uploads/dp/${result.result.dp}`);
-      }
-    } else {
-      const result = await response.json();
-      console.log(result.message);
-    }
-  }
+  const {
+    data: profilePicturePath,
+    isPending,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["get-user", { userId: user.userId }],
+    queryFn: () => getUser({ userId: user.userId }),
+  });
+
   const isAdmin = useRef(false);
-  useEffect(() => {
-    async function checkAuth() {
-      const userVerified = await useAuth();
-      if (userVerified.response) {
-        setIsVerified(true);
-        if (
-          userVerified.role === "Admin" ||
-          userVerified.role === "Super-Admin"
-        ) {
-          isAdmin.current = true;
-        }
-        getUser(userVerified.userId);
-      } else {
-        setIsVerified(false);
-      }
-      setIsLoading(false);
-    }
-    checkAuth();
-  }, []);
 
   function logoutHandler() {
     localStorage.clear();
     navigate("/");
   }
-  if (isLoading) {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-        }}
-      >
-        <Skeleton
-          variant="text"
-          width={100}
-          height={40}
-          sx={{ alignSelf: "center" }}
-        />
-        <Skeleton
-          variant="circular"
-          width={80}
-          height={80}
-          sx={{ alignSelf: "center" }}
-        />
-        <Skeleton
-          variant="rectangular"
-          width={210}
-          height={300}
-          sx={{ alignSelf: "center" }}
-        />
-      </Box>
-    );
-  } else if (!isVerified) {
-    navigate("/");
-    // return (
-    // <Box sx={{ margin: "20px" }}>
-    //   <Alert severity="error">
-    //     You Are Not Authorised to view this page. Kindly{" "}
-    //     <Link to="/">Login</Link>
-    //   </Alert>
-    // </Box>
-    // );
-  }
   function handleClose() {
+    queryClient.invalidateQueries({
+      queryKey: ["get-user", { userId: user.userId }],
+    });
     setShowPrompt(false);
   }
   if (showPrompt) {
@@ -154,6 +107,19 @@ export default function Welcome() {
         }}
       />
     );
+  }
+  if (!user) {
+    return (
+      <Skeleton
+        variant="rectangular"
+        width={300}
+        height={500}
+        sx={{ borderRadius: "10px" }}
+      />
+    );
+  } else {
+    if (user.role === "Admin" || user.role === "Super-Admin")
+      isAdmin.current = true;
   }
   return (
     <Box sx={{ display: "flex" }}>
@@ -298,8 +264,7 @@ export default function Welcome() {
                   <Person />
                 </Typography>
                 <Typography sx={{ fontWeight: "bold", fontSize: "14px" }}>
-                  {" "}
-                  Patients{" "}
+                  Patients
                 </Typography>
               </ListItemButton>
             </Link>
@@ -450,9 +415,16 @@ export default function Welcome() {
               <Avatar
                 sx={{ bgcolor: deepOrange[500] }}
                 alt="Remy Sharp"
-                src={profilePicture}
+                src={profilePicturePath?.src}
               >
-                B
+                {isPending ? (
+                  <CircularProgress size={20} />
+                ) : isError ? (
+                  console.log("Profile Picture not found", error)
+                ) : (
+                  // toast.error("Profile Picture not found");
+                  "B"
+                )}
               </Avatar>
             </IconButton>
           </Tooltip>
@@ -470,6 +442,7 @@ export default function Welcome() {
               horizontal: "right",
             }}
           >
+            <Toaster />
             <MenuItem
               onClick={() => {
                 setShowPrompt(true);
@@ -502,7 +475,13 @@ export default function Welcome() {
               },
             }}
           >
-            <Outlet />
+            {navigation.state === "loading" ? (
+              <Grid2 display="flex" justifyContent="center">
+                <CircularProgress />
+              </Grid2>
+            ) : (
+              <Outlet />
+            )}
           </motion.div>
         </Box>
       </Box>

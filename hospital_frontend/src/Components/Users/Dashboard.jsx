@@ -36,22 +36,13 @@ import {
   provideGlobalGridOptions,
 } from "ag-grid-community";
 provideGlobalGridOptions({ theme: "legacy" });
-// import { } from "@ag-grid-community";
-// ModuleRegistry.registerModules([ValidationModule]);
 import { Responsive, WidthProvider } from "react-grid-layout";
-// import { ModuleRegistry } from 'ag-grid-community';
-// import { ClientSideRowModelModule } from "ag-grid-community/client-side-row-model";
-// import { CsvExportModule } from "ag-grid-community/csv-export";
-
-// Register the required modules with the grid
 ModuleRegistry.registerModules([ClientSideRowModelModule]);
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-quartz.css";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 import { motion } from "motion/react";
-
-// ModuleRegistry.registerModules([ClientSideRowModelModule]);
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
 const dummyData = {
@@ -152,11 +143,6 @@ export default function Dashboard() {
           rowHeight={100}
           autoSize
           draggableHandle=".drag-handle"
-          // onDragStart={(layout, oldItem, newItem, placeholder, e, element) => {
-          //   element.style.transform = "translate(0px, 0px)";
-          //   setDraggingItem(newItem.i);
-          // }}
-          // onDragStop={() => setDraggingItem(null)}
         >
           {dummyData.stats.map((stat, index) => (
             <div
@@ -177,10 +163,6 @@ export default function Dashboard() {
                     ]
                   }`,
                   height: "100%",
-                  // border:
-                  //   draggingItem === `stat-${index}`
-                  //     ? `2px dashed ${theme.palette.primary.main}`
-                  //     : "none",
                 }}
                 className="drag-handle"
               >
@@ -205,10 +187,6 @@ export default function Dashboard() {
                 paddingBottom: "4rem",
                 paddingRight: "2rem",
                 height: "100%",
-                //   border:
-                //     draggingItem === "chart1"
-                //       ? `2px dashed ${theme.palette.primary.main}`
-                //       : "none",
               }}
               className=".drag-handle"
             >

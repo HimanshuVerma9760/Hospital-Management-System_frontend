@@ -170,7 +170,12 @@ export default function Forms() {
   const reqFormId = React.useRef();
   if (isLoading) {
     return (
-    <LinearProgress/>
+      <Skeleton
+        variant="rectangular"
+        width="100%"
+        height={460}
+        sx={{ borderRadius: "10px" }}
+      />
     );
   }
   if (viewFormMode) {
@@ -299,7 +304,11 @@ export default function Forms() {
                 </TableCell>
                 <TableCell style={{ width: 100 }} align="center">
                   <Grid2
-                    sx={{ display: "flex", gap:"0.5rem", justifyContent:"center"}}
+                    sx={{
+                      display: "flex",
+                      gap: "0.5rem",
+                      justifyContent: "center",
+                    }}
                   >
                     <Tooltip title="Edit">
                       <IconButton
